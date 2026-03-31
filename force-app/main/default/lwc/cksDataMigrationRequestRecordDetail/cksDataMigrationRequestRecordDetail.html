@@ -1,0 +1,221 @@
+<template>
+    <!-- 　ローディング表示    -->
+    <template lwc:if={isLoading}>
+        <div>
+            <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+        </div>
+    </template>
+    <!-- エラー表示領域 -->
+    <!-- <c-dgk-error-toast errors={error}></c-dgk-error-toast> -->
+    <!-- 削除フラグがFALSEの時に表示 -->
+    <template lwc:if={displayAll}>
+        <lightning-record-edit-form
+            record-id={recordId}
+            object-api-name="DataMigrationRequest__c"
+            onsubmit={handleSubmit}
+        >
+            <!--　ボタンエリア -->
+            <lightning-layout horizontal-align="center">
+                <lightning-layout-item padding="horizontal-small">
+                    <lightning-button name="edit" label="編集" onclick={handleClick} disabled={disabled}></lightning-button>
+                </lightning-layout-item>
+                <lightning-layout-item padding="horizontal-small">
+                    <lightning-button name="delete" label="削除" onclick={handleClick} disabled={disabled}></lightning-button>
+                </lightning-layout-item>
+                <lightning-layout-item padding="horizontal-small">
+                    <lightning-button name="copy" label="コピー" onclick={handleClick} disabled={disabled}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout>
+
+            <!--　ユーザー向け入力チェックエラー表示領域-->
+            <!-- <template lwc:if={errorMessages}>
+                <c-dgk-user-error-panel messages={errorMessages}></c-dgk-user-error-panel>
+            </template> -->
+
+            <lightning-accordion allow-multiple-sections-open active-section-name={internalActiveSections}>
+                <lightning-accordion-section name="A" label="データ移行依頼の詳細">
+                    <lightning-layout multiple-rows="true">
+                        <lightning-layout-item padding="horizontal-small" size="12">
+                            <lightning-output-field field-name="Name" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="MigrationType__c" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="MigrationDate__c" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="AssociateCode__c" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <template lwc:if={visibility.migrationAssociateCode}>
+                            <lightning-layout-item padding="horizontal-small" size="6">
+                                <lightning-output-field field-name="MigrationAssociateCode__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                    </lightning-layout>
+                </lightning-accordion-section>
+                <lightning-accordion-section name="B" label="移行対象データ(オブジェクト)">
+                    <lightning-layout multiple-rows="true">
+                        <template lwc:if={visibility.existingContractCustomerNotes}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="ExistingContractCustomerNotes__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.existingContractCustomerNotes}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Individual__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                            <template lwc:if={displayMessages.individual.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <!-- メッセージ配列をループして表示 -->
+                                        <template for:each={displayMessages.individual.messages} for:item="message">
+                                            <div key={message.id} class="slds-m-bottom_small">
+                                                <!-- テキストメッセージ表示 -->
+                                                <template lwc:if={message.text}>
+                                                    <div>
+                                                        <lightning-icon icon-name={message.icon} size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                                        <span>{message.text}</span>
+                                                    </div>
+                                                </template>
+                                                <!-- 画像表示 -->
+                                                <template lwc:if={message.img}>
+                                                    <div class="image-container">
+                                                        <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
+                        </template>
+                        <template lwc:if={visibility.childGroup}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="ChildGroup__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>                        
+                            <template lwc:if={displayMessages.childGroup.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <!-- メッセージ配列をループして表示 -->
+                                        <template for:each={displayMessages.childGroup.messages} for:item="message">
+                                            <div key={message.id} class="slds-m-bottom_small">
+                                                <!-- テキストメッセージ表示 -->
+                                                <template lwc:if={message.text}>
+                                                    <div>
+                                                        <lightning-icon icon-name={message.icon} size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                                        <span>{message.text}</span>
+                                                    </div>
+                                                </template>
+                                                <!-- 画像表示 -->
+                                                <template lwc:if={message.img}>
+                                                    <div class="image-container">
+                                                        <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
+                        </template>
+                        <template lwc:if={visibility.household}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Household__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.relative}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Relative__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.campaign}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Campaign__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.campaignMember}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="CampaignMember__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.otherCompany}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="OtherCompany__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.riderOtherCompany}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="RiderOtherCompany__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.opportunity}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Opportunity__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.graspIntention}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="GraspIntention__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.personalInformationHandling}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="PersonalInformationHandling__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.dailyReport}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="DailyReport__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.event}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Event__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.task}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="Task__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.attachmentDoc}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="AttachmentDoc__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                        <template lwc:if={visibility.targetManagement}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-output-field field-name="TargetManagement__c" variant="standard"></lightning-output-field>
+                            </lightning-layout-item>
+                        </template>
+                    </lightning-layout>
+                </lightning-accordion-section>
+
+                <lightning-accordion-section name="C" label="システム情報">
+                    <lightning-layout multiple-rows="true">
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="CreatedById" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="LastModifiedById" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="CreatedDate" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>
+                        <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-output-field field-name="LastModifiedDate" variant="standard"></lightning-output-field>
+                        </lightning-layout-item>                        
+                    </lightning-layout>
+                </lightning-accordion-section>
+            </lightning-accordion>
+        </lightning-record-edit-form>
+    </template>
+    <template lwc:else>
+        <lightning-card>
+            <div class="slds-text-align_center">
+                <lightning-formatted-text value="レコードは削除されています"></lightning-formatted-text>
+            </div>
+        </lightning-card>
+    </template>
+</template>

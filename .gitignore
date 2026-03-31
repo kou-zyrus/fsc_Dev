@@ -1,0 +1,14 @@
+# Salesforceの一時ファイルを除外
+.sf/
+.sfdx/
+.local/
+node_modules/
+bin/
+
+# OS生成ファイルを除外
+.DS_Store
+Thumbs.db
+
+# ログファイルなどを除外
+*.log
+apex.db

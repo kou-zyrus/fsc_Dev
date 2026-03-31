@@ -1,0 +1,36 @@
+table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.col-code {
+    width: 25%;
+}
+
+.col-name {
+    width: 25%;
+}
+
+.col-hokenryo {
+    width: 25%;
+}
+
+.col-ap {
+    width: 25%;
+}
+
+/* 説明画像のスタイル */
+.migration-hint-image {
+    max-width: 50%;    /* 横幅を親要素の半分に合わせる */
+    height: auto;       /* 比率を維持 */
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+    margin-top: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 少し影をつけて浮かせる */
+}
+
+/* メッセージボックスの装飾 */
+.slds-box {
+    border-left: 4px solid #1589ee;
+    background-color: #f3f9ff;
+}
