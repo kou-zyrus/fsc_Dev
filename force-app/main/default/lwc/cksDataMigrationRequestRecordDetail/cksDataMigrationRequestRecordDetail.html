@@ -54,6 +54,20 @@
                         </template>
                     </lightning-layout>
                 </lightning-accordion-section>
+                <template lwc:if={hasReferenceMaterials}>
+                    <lightning-accordion-section name="R" label="参考資料">
+                        <lightning-layout multiple-rows="true">
+                            <template for:each={referenceMaterials} for:item="material">
+                                <lightning-layout-item key={material.url} padding="horizontal-small" size="12">
+                                    <div class="slds-p-vertical_x-small">
+                                        <div class="slds-text-title_bold">{material.title}</div>
+                                        <lightning-formatted-url value={material.url} label={material.url} target="_blank"></lightning-formatted-url>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
+                        </lightning-layout>
+                    </lightning-accordion-section>
+                </template>
                 <lightning-accordion-section name="B" label="移行対象データ(オブジェクト)">
                     <lightning-layout multiple-rows="true">
                         <template lwc:if={visibility.existingContractCustomerNotes}>
@@ -61,31 +75,30 @@
                                 <lightning-output-field field-name="ExistingContractCustomerNotes__c" variant="standard"></lightning-output-field>
                             </lightning-layout-item>
                         </template>
-                        <template lwc:if={visibility.existingContractCustomerNotes}>
+                        <template lwc:if={visibility.individual}>
                             <lightning-layout-item padding="horizontal-small" size="12">
                                 <lightning-output-field field-name="Individual__c" variant="standard"></lightning-output-field>
                             </lightning-layout-item>
                             <template lwc:if={displayMessages.individual.hasContent}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
-                                        <!-- メッセージ配列をループして表示 -->
-                                        <template for:each={displayMessages.individual.messages} for:item="message">
-                                            <div key={message.id} class="slds-m-bottom_small">
-                                                <!-- テキストメッセージ表示 -->
-                                                <template lwc:if={message.text}>
-                                                    <div>
-                                                        <lightning-icon icon-name={message.icon} size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                        <!-- メッセージをリスト形式で表示 -->
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.individual.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <!-- テキストメッセージ表示 -->
+                                                    <template lwc:if={message.text}>
                                                         <span>{message.text}</span>
-                                                    </div>
-                                                </template>
-                                                <!-- 画像表示 -->
-                                                <template lwc:if={message.img}>
-                                                    <div class="image-container">
-                                                        <img src={message.img} alt="説明画像" class="migration-hint-image"/>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </template>
+                                                    </template>
+                                                    <!-- 画像表示 -->
+                                                    <template lwc:if={message.img}>
+                                                        <div class="image-container slds-m-top_small">
+                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                        </div>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
                                     </div>
                                 </lightning-layout-item>
                             </template>
@@ -97,24 +110,23 @@
                             <template lwc:if={displayMessages.childGroup.hasContent}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
-                                        <!-- メッセージ配列をループして表示 -->
-                                        <template for:each={displayMessages.childGroup.messages} for:item="message">
-                                            <div key={message.id} class="slds-m-bottom_small">
-                                                <!-- テキストメッセージ表示 -->
-                                                <template lwc:if={message.text}>
-                                                    <div>
-                                                        <lightning-icon icon-name={message.icon} size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                        <!-- メッセージをリスト形式で表示 -->
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.childGroup.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <!-- テキストメッセージ表示 -->
+                                                    <template lwc:if={message.text}>
                                                         <span>{message.text}</span>
-                                                    </div>
-                                                </template>
-                                                <!-- 画像表示 -->
-                                                <template lwc:if={message.img}>
-                                                    <div class="image-container">
-                                                        <img src={message.img} alt="説明画像" class="migration-hint-image"/>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </template>
+                                                    </template>
+                                                    <!-- 画像表示 -->
+                                                    <template lwc:if={message.img}>
+                                                        <div class="image-container slds-m-top_small">
+                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                        </div>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
                                     </div>
                                 </lightning-layout-item>
                             </template>

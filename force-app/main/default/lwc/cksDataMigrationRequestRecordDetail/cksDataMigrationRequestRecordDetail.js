@@ -34,6 +34,16 @@ const TYPE_SPECIFICDATA_EXPORT = '一部データ抽出';
 const TYPE_TOA_BULKPATCH = 'トーア一括パッチ';
 const TYPE_OTHER_PATCH = 'その他データパッチ';
 
+/** 参考資料の表示定義 */
+const REFERENCE_MATERIALS_CONFIG = {
+    [TYPE_INTEGRATION_USED]: [
+        {
+            title: '2026年3月実施_ABC開発→J&S移行要件',
+            url: 'https://aflacjpn.box.com/s/1t5rc3z65d9u1uxphxerd8jk0jogxsi3'
+        }
+    ]
+};
+
 /** 
  * 各項目の表示条件定義
  */
@@ -59,34 +69,28 @@ const FIELD_VISIBILITY = {
 };
 
 /** 移行対象オブジェクトごとのメッセージ定義 */
-const MIGRATION_MESSAGES = {
+const MESSAGES_CONFIG = {
     individual: {
-        label: '白地顧客',
-        true: false,
-        false: '白地顧客を移行しない場合、白地顧客に紐づく対応・案件等の関連データも移行されません。'
+        base: {
+            true: false,
+            false: '白地顧客を移行しない場合、白地顧客に紐づく対応・案件等の関連データも移行されません。'
+        },
+        conditions: [
+            {
+                condition: (component) => !component.individual && component.otherCompany,
+                text: '【他社証券データについて】移行元において被保険者として白地顧客が設定されていると、白地顧客が移行されない場合に該当の他社証券データの編集時にエラーが発生するため、該当する他社証券データの被保険者項目はブランクにします。',
+                img: IMAGES + '/indivisualOtherCompany.png'
+            }
+        ]
     },
     childGroup: {
-        label: '白地団体',
-        true: false,
-        false: '顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。',
-        falseImg: IMAGES + '/childGroup.png'
-    },
-    // 必要に応じて、household, relative, campaign なども同様に追加
-};
-
-/** 複合条件によるメッセージ定義 */
-const COMBINATION_MESSAGES = {
-    individual: [
-        {
-            // Individual__cがチェックなし AND OtherCompany__cがチェックありの場合
-            condition: (component) => !component.individual && component.otherCompany,
-            text: '被保険者が白地顧客だった場合に、白地顧客を移行していないと編集でエラーが発生するため、被保険者項目はブランクにします',
-            icon: 'utility:info'
-        }
-    ],
-    childGroup: [
-        // 複合条件メッセージが必要な場合はここに追加
-    ]
+        base: {
+            true: false,
+            false: '顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。',
+            falseImg: IMAGES + '/childGroup.png'
+        },
+        conditions: []
+    }
     // 必要に応じて他の項目も追加
 };
 
@@ -99,7 +103,7 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
     //ロード中制御
     isLoading = false;
     //内部用の表示セクション
-    internalActiveSections = ['A','B','C'];
+    internalActiveSections = ['A','R','B','C'];
     //Lightning Data Serviceのキャッシュクリア用の変数
     wiredResult;
     //二度押し防止用
@@ -337,6 +341,16 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
         return visObj;
     }
 
+    /** 参考資料の表示データ */
+    get referenceMaterials() {
+        return REFERENCE_MATERIALS_CONFIG[this.migrationType] || [];
+    }
+
+    /** 参考資料があるかどうか */
+    get hasReferenceMaterials() {
+        return this.referenceMaterials.length > 0;
+    }
+
     /**
      * 各オブジェクトの現在の値（True/False）に応じた表示用オブジェクトを返す
      * 複数のメッセージをメッセージ配列として返す
@@ -344,34 +358,32 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
      */
     get displayMessages() {
         const msgObj = {};
-        Object.keys(MIGRATION_MESSAGES).forEach(key => {
+        Object.keys(MESSAGES_CONFIG).forEach(key => {
             const isChecked = this[key] || false; 
-            const config = MIGRATION_MESSAGES[key];
+            const config = MESSAGES_CONFIG[key];
             const messages = [];
             let messageIndex = 0;
 
             // 基本メッセージを追加
-            const baseText = isChecked ? config.true : config.false;
-            const baseImg = isChecked ? config.trueImg : config.falseImg;
-            const baseIcon = isChecked ? 'utility:info' : 'utility:info_alt';
+            const baseText = isChecked ? config.base.true : config.base.false;
+            const baseImg = isChecked ? config.base.trueImg : config.base.falseImg;
             
             if (baseText || baseImg) {
                 messages.push({
                     id: `${key}_${messageIndex++}`,
                     text: baseText,
-                    img: baseImg,
-                    icon: baseIcon
+                    img: baseImg
                 });
             }
 
             // 複合条件メッセージを追加
-            if (COMBINATION_MESSAGES[key]) {
-                COMBINATION_MESSAGES[key].forEach((combo) => {
+            if (config.conditions) {
+                config.conditions.forEach((combo) => {
                     if (combo.condition(this)) {
                         messages.push({
                             id: `${key}_${messageIndex++}`,
                             text: combo.text,
-                            icon: combo.icon || 'utility:info'
+                            img: combo.img
                         });
                     }
                 });
