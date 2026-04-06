@@ -34,3 +34,7 @@ table {
     border-left: 4px solid #1589ee;
     background-color: #f3f9ff;
 }
+
+.section-a-item {
+    margin-bottom: 0.25rem;
+}

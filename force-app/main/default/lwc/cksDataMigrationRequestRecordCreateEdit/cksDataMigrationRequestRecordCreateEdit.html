@@ -1,0 +1,161 @@
+<template>
+    <template lwc:if={isLoading}>
+        <div>
+            <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+        </div>
+    </template>
+
+    <lightning-record-edit-form
+        object-api-name="DataMigrationRequest__c"
+        record-id={formRecordId}
+        onsubmit={handleSubmit}
+        onerror={handleError}
+        onsuccess={handleSuccess}
+    >
+        <lightning-modal-header label={headerLabel}></lightning-modal-header>
+
+        <lightning-modal-body class={modalBodyClass}>
+            <div class={modalContentClass}>
+                <lightning-messages></lightning-messages>
+
+                <lightning-accordion allow-multiple-sections-open active-section-name={activeSections}>
+                    <lightning-accordion-section name="A" label="データ移行依頼の詳細">
+                        <lightning-layout multiple-rows="true" vertical-align="center">
+                            <lightning-layout-item padding="horizontal-small" size="6">
+                                <lightning-input-field field-name="Name" value={fieldValues.Name}></lightning-input-field>
+                            </lightning-layout-item>
+                            <lightning-layout-item padding="horizontal-small" size="6"></lightning-layout-item>
+                            <lightning-layout-item padding="horizontal-small" size="6">
+                                <lightning-input-field field-name="MigrationType__c" value={fieldValues.MigrationType__c} onchange={handleChange}></lightning-input-field>
+                            </lightning-layout-item>
+                            <lightning-layout-item padding="horizontal-small" size="6">
+                                <lightning-input-field field-name="MigrationDate__c" value={fieldValues.MigrationDate__c}></lightning-input-field>
+                            </lightning-layout-item>
+                            <lightning-layout-item padding="horizontal-small" size="6">
+                                <lightning-input-field field-name="AssociateCode__c" value={fieldValues.AssociateCode__c}></lightning-input-field>
+                            </lightning-layout-item>
+                            <template lwc:if={visibility.migrationAssociateCode}>
+                                <lightning-layout-item padding="horizontal-small" size="6">
+                                    <lightning-input-field field-name="MigrationAssociateCode__c" value={fieldValues.MigrationAssociateCode__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                        </lightning-layout>
+                    </lightning-accordion-section>
+
+                    <lightning-accordion-section name="B" label="移行対象データ(オブジェクト)">
+                        <lightning-layout multiple-rows="true" vertical-align="center">
+                            <template lwc:if={showBlankRowsInSectionB}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <div class="section-b-blank-row"></div>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <div class="section-b-blank-row"></div>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <div class="section-b-blank-row"></div>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.existingContractCustomerNotes}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ExistingContractCustomerNotes__c" value={fieldValues.ExistingContractCustomerNotes__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.individual}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Individual__c" value={fieldValues.Individual__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.childGroup}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ChildGroup__c" value={fieldValues.ChildGroup__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.household}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Household__c" value={fieldValues.Household__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.relative}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Relative__c" value={fieldValues.Relative__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.campaign}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Campaign__c" value={fieldValues.Campaign__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.campaignMember}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="CampaignMember__c" value={fieldValues.CampaignMember__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.otherCompany}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="OtherCompany__c" value={fieldValues.OtherCompany__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.riderOtherCompany}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="RiderOtherCompany__c" value={fieldValues.RiderOtherCompany__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.opportunity}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Opportunity__c" value={fieldValues.Opportunity__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.graspIntention}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="GraspIntention__c" value={fieldValues.GraspIntention__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.personalInformationHandling}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="PersonalInformationHandling__c" value={fieldValues.PersonalInformationHandling__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.dailyReport}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="DailyReport__c" value={fieldValues.DailyReport__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.event}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Event__c" value={fieldValues.Event__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.task}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Task__c" value={fieldValues.Task__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.attachmentDoc}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="AttachmentDoc__c" value={fieldValues.AttachmentDoc__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.targetManagement}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="TargetManagement__c" value={fieldValues.TargetManagement__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                        </lightning-layout>
+                    </lightning-accordion-section>
+                </lightning-accordion>
+
+            </div>
+        </lightning-modal-body>
+
+        <lightning-modal-footer>
+            <lightning-layout>
+                <lightning-layout-item padding="horizontal-small" size="12">
+                    <div class="slds-text-align_center">
+                        <lightning-button class="slds-m-right_x-small" name="cancel" label="キャンセル" onclick={handleClick}></lightning-button>
+                        <lightning-button class="slds-m-right_x-small" name="save" label="保存" variant="brand" type="submit" disabled={disabled}></lightning-button>
+                    </div>
+                </lightning-layout-item>
+            </lightning-layout>
+        </lightning-modal-footer>
+    </lightning-record-edit-form>
+</template>

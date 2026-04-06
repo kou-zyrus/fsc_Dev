@@ -3,19 +3,19 @@
  * CAMPSのデータ移行依頼のレコード詳細情報表示用コンポーネント
 */
 import { LightningElement, wire, api } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
 import LightningConfirm from "lightning/confirm";
 import { refreshApex } from '@salesforce/apex';
 import workspaceAPI from 'lightning/platformWorkspaceApi';
-
-// import cksDataMigrationRequestRecordCreateEdit from 'c/cksDataMigrationRequestRecordCreateEdit';
+import cksDataMigrationRequestRecordCreateEdit from 'c/cksDataMigrationRequestRecordCreateEdit';
 
 import ID_FIELD from '@salesforce/schema/DataMigrationRequest__c.Id';
 
 import IMAGES from '@salesforce/resourceUrl/DataMigrationRequestImages';
 
+import { deleteRecord } from 'lightning/uiRecordApi';
 import getEditSetupData from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getEditSetupData';
-import deleteDataMigrationRequest from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.deleteDataMigrationRequest';
 
 /** 削除確認メッセージ */
 const DELETE_CONFIRM_MESSAGE = {
@@ -94,7 +94,7 @@ const MESSAGES_CONFIG = {
     // 必要に応じて他の項目も追加
 };
 
-export default class cksDataMigrationRequestRecordDetail extends LightningElement {
+export default class cksDataMigrationRequestRecordDetail extends NavigationMixin(LightningElement) {
         /********************* 公開プロパティ *********************/
     //申込詳細情報レコードID
     @api recordId;
@@ -103,7 +103,11 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
     //ロード中制御
     isLoading = false;
     //内部用の表示セクション
-    internalActiveSections = ['A','R','B','C'];
+    internalActiveSections = ['A', 'B', 'C'];
+    //参考資料セクションの自動展開を1回だけ実行するためのフラグ
+    hasAppliedReferenceAutoOpen = false;
+    //描画後の再設定を重複実行しないためのフラグ
+    isReferenceAutoOpenQueued = false;
     //Lightning Data Serviceのキャッシュクリア用の変数
     wiredResult;
     //二度押し防止用
@@ -177,6 +181,20 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
         this.init();
     }
 
+    //描画後処理
+    renderedCallback() {
+        if (!this.hasReferenceMaterials || this.hasAppliedReferenceAutoOpen || this.isReferenceAutoOpenQueued) {
+            return;
+        }
+
+        this.isReferenceAutoOpenQueued = true;
+        setTimeout(() => {
+            this.internalActiveSections = ['A', 'R', 'B', 'C'];
+            this.hasAppliedReferenceAutoOpen = true;
+            this.isReferenceAutoOpenQueued = false;
+        }, 0);
+    }
+
     //初期化処理
     async init(){
         try{
@@ -204,8 +222,10 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
             this.attachmentDoc = requestData.AttachmentDoc__c;
             this.targetManagement = requestData.TargetManagement__c;
             this.lastModifiedDate = requestData.LastModifiedDate;
+            this.setDefaultActiveSections();
         }catch(error){
             this.error = error;
+            this.internalActiveSections = ['A', 'B', 'C'];
         }
     }
 
@@ -222,8 +242,7 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
                     isCopy : false,
                     recordId: this.recordId,
                 });
-                if(result?.isSuccess){
-                    console.log('edit end');
+                if (result?.isSuccess || result?.status === 'cancel') {
                     this.refresh();
                 }
                 break;
@@ -241,7 +260,16 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
                     isCopy : true,
                     recordId: this.recordId,
                 });
-                if(result?.isSuccess){
+                if (result?.isSuccess && result?.recordId) {
+                    this[NavigationMixin.Navigate]({
+                        type: 'standard__recordPage',
+                        attributes: {
+                            recordId: result.recordId,
+                            objectApiName: 'DataMigrationRequest__c',
+                            actionName: 'view'
+                        }
+                    });
+                } else if (result?.status === 'cancel') {
                     this.refresh();
                 }
                 break;
@@ -252,40 +280,15 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
     //削除ボタンクリック時処理
     async handleDelete() {
         const result = await LightningConfirm.open(DELETE_CONFIRM_MESSAGE);
-        if (result) {
-            try {
-                const deleteResult = await deleteDataMigrationRequest({
-                    recordId: this.recordId,
-                    lastModifiedDate: this.lastModifiedDate
-                });
-    
-                if (deleteResult.isSuccess) {
-                    this.errorMessages = null;
-                
-                    try {
+        if (!result) return;
 
-                        const currentTb = await workspaceAPI.getFocusedTabInfo();
-                        // 申込基本情報の詳細ページを新規タブで開く
-                        await workspaceAPI.openTab({
-                            recordId: this.moshikomiKihonJoho,
-                            focus: true
-                        });
-                
-                        // 削除した申込詳細情報のタブを閉じる
-                        await workspaceAPI.closeTab(currentTb.tabId);
-                
-                    } catch (tabError) {
-                        console.error('タブ操作に失敗しました:', tabError);
-                    }
-                } else {
-                    this.errorMessages = deleteResult.errorMessages.map((value, index) => {
-                        return { key: index, message: value };
-                    });
-                }
-    
-            } catch (error) {
-                this.error = error;
-            }
+        this.isLoading = true;
+        try {
+            await deleteRecord(this.recordId);
+            window.location.assign('/lightning/o/DataMigrationRequest__c/list');
+        } catch (error) {
+            this.error = error;
+            this.isLoading = false;
         }
     }
 
@@ -349,6 +352,18 @@ export default class cksDataMigrationRequestRecordDetail extends LightningElemen
     /** 参考資料があるかどうか */
     get hasReferenceMaterials() {
         return this.referenceMaterials.length > 0;
+    }
+
+    /** 参考資料の有無に応じてデフォルト展開セクションを設定 */
+    setDefaultActiveSections() {
+        if (this.hasReferenceMaterials) {
+            this.internalActiveSections = ['A', 'B', 'C'];
+            this.hasAppliedReferenceAutoOpen = false;
+            return;
+        }
+
+        this.internalActiveSections = ['A', 'B', 'C'];
+        this.hasAppliedReferenceAutoOpen = true;
     }
 
     /**

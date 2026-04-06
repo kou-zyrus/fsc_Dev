@@ -1,0 +1,62 @@
+<apex:page standardController="DataMigrationRequest__c" recordSetVar="records" sidebar="false" showHeader="false">
+    <!-- Lightning Outのライブラリを読み込み -->
+    <apex:includeLightning />
+
+    <!-- LWCが表示される場所 -->
+    <div id="lightning-container" />
+
+    <script>
+        (function() {
+            window.addEventListener('message', function(event) {
+                const data = event.data || {};
+                if (data.type !== 'cksDataMigrationRequestCreateEditResult') {
+                    return;
+                }
+
+                if (data.status === 'success' && data.recordId) {
+                    if (window.sforce && sforce.one) {
+                        sforce.one.navigateToSObject(data.recordId, 'detail');
+                    } else {
+                        window.top.location.assign('/lightning/r/DataMigrationRequest__c/' + data.recordId + '/view');
+                    }
+                    return;
+                }
+
+                if (data.status === 'cancel') {
+                    if (window.sforce && sforce.one) {
+                        sforce.one.navigateToURL('/lightning/o/DataMigrationRequest__c/list');
+                    } else {
+                        window.top.location.assign('/lightning/o/DataMigrationRequest__c/list');
+                    }
+                }
+            });
+
+            // 1. "c:cksApp" は Aura アプリケーションの名前
+            $Lightning.use("c:cksApp", function() {
+                // 2. LWCを作成してコンテナに配置
+                $Lightning.createComponent(
+                    "c:cksDataMigrationRequestRecordCreateEdit",
+                    {
+                        isCreate: true,
+                        isCopy: false,
+                        recordId: null,
+                        launchContext: 'listViewNew'
+                    },
+                    "lightning-container",
+                    function(cmp) {
+                        console.log("LWC component was created");
+                    }
+                );
+            });
+        })();
+    </script>
+    
+    <style>
+        #lightning-container {
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            background: #fff;
+        }
+    </style>
+</apex:page>

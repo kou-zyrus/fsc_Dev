@@ -35,20 +35,20 @@
             <lightning-accordion allow-multiple-sections-open active-section-name={internalActiveSections}>
                 <lightning-accordion-section name="A" label="データ移行依頼の詳細">
                     <lightning-layout multiple-rows="true">
-                        <lightning-layout-item padding="horizontal-small" size="12">
+                        <lightning-layout-item class="section-a-item" padding="horizontal-small" size="12">
                             <lightning-output-field field-name="Name" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
-                        <lightning-layout-item padding="horizontal-small" size="6">
+                        <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
                             <lightning-output-field field-name="MigrationType__c" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
-                        <lightning-layout-item padding="horizontal-small" size="6">
+                        <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
                             <lightning-output-field field-name="MigrationDate__c" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
-                        <lightning-layout-item padding="horizontal-small" size="6">
+                        <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
                             <lightning-output-field field-name="AssociateCode__c" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
                         <template lwc:if={visibility.migrationAssociateCode}>
-                            <lightning-layout-item padding="horizontal-small" size="6">
+                            <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
                                 <lightning-output-field field-name="MigrationAssociateCode__c" variant="standard"></lightning-output-field>
                             </lightning-layout-item>
                         </template>
@@ -56,28 +56,28 @@
                 </lightning-accordion-section>
                 <template lwc:if={hasReferenceMaterials}>
                     <lightning-accordion-section name="R" label="参考資料">
-                        <lightning-layout multiple-rows="true">
-                            <template for:each={referenceMaterials} for:item="material">
-                                <lightning-layout-item key={material.url} padding="horizontal-small" size="12">
-                                    <div class="slds-p-vertical_x-small">
+                        <div class="slds-p-horizontal_small slds-p-vertical_x-small">
+                            <ul class="slds-list_dotted">
+                                <template for:each={referenceMaterials} for:item="material">
+                                    <li key={material.url} class="slds-m-bottom_small">
                                         <div class="slds-text-title_bold">{material.title}</div>
                                         <lightning-formatted-url value={material.url} label={material.url} target="_blank"></lightning-formatted-url>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </lightning-layout>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
                     </lightning-accordion-section>
                 </template>
                 <lightning-accordion-section name="B" label="移行対象データ(オブジェクト)">
                     <lightning-layout multiple-rows="true">
                         <template lwc:if={visibility.existingContractCustomerNotes}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="ExistingContractCustomerNotes__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="既契約者の顧客注意事項" checked={existingContractCustomerNotes} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.individual}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Individual__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="白地顧客及び白地顧客の顧客注意事項" checked={individual} disabled></lightning-input>
                             </lightning-layout-item>
                             <template lwc:if={displayMessages.individual.hasContent}>
                                 <lightning-layout-item size="12" padding="around-small">
@@ -105,7 +105,7 @@
                         </template>
                         <template lwc:if={visibility.childGroup}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="ChildGroup__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="白地団体及び白地団体の顧客注意事項" checked={childGroup} disabled></lightning-input>
                             </lightning-layout-item>                        
                             <template lwc:if={displayMessages.childGroup.hasContent}>
                                 <lightning-layout-item size="12" padding="around-small">
@@ -133,72 +133,72 @@
                         </template>
                         <template lwc:if={visibility.household}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Household__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="世帯" checked={household} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.relative}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Relative__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="関係者情報" checked={relative} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.campaign}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Campaign__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="募集企画" checked={campaign} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.campaignMember}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="CampaignMember__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="募集企画対象者" checked={campaignMember} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.otherCompany}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="OtherCompany__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="他社保険契約" checked={otherCompany} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.riderOtherCompany}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="RiderOtherCompany__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="他社特約" checked={riderOtherCompany} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.opportunity}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Opportunity__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="案件" checked={opportunity} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.graspIntention}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="GraspIntention__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="意向把握" checked={graspIntention} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.personalInformationHandling}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="PersonalInformationHandling__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="個人情報取り扱い" checked={personalInformationHandling} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.dailyReport}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="DailyReport__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="日報" checked={dailyReport} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.event}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Event__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="対応" checked={event} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.task}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="Task__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="タスク" checked={task} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.attachmentDoc}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="AttachmentDoc__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="添付書類" checked={attachmentDoc} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                         <template lwc:if={visibility.targetManagement}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-output-field field-name="TargetManagement__c" variant="standard"></lightning-output-field>
+                                <lightning-input type="checkbox" label="目標" checked={targetManagement} disabled></lightning-input>
                             </lightning-layout-item>
                         </template>
                     </lightning-layout>

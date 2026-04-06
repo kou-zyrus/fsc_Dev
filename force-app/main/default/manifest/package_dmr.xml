@@ -2,7 +2,20 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>cksDataMigrationRequestRecordDetail</members>
+        <members>cksDataMigrationRequestRecordCreateEdit</members>
         <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>CreateDataMigrationRequestAction</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>CksApp</members>
+        <name>AuraDefinitionBundle</name>
+    </types>
+    <types>
+        <members>DataMigrationRequest__c.*</members>
+        <name>WebLink</name>
     </types>
     <types>
         <members>CKS_CTRL_DataMigrationRequest</members>

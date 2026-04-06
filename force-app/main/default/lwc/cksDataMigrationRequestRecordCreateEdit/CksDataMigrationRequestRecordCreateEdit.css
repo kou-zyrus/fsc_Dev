@@ -1,0 +1,16 @@
+.modal-content {
+    overflow: visible;
+}
+
+.modal-content_empty-targets {
+    min-height: 40rem;
+}
+
+lightning-modal-body.modal-body_empty-targets {
+    max-height: none;
+    min-height: 40rem;
+}
+
+.section-b-blank-row {
+    height: 3rem;
+}
