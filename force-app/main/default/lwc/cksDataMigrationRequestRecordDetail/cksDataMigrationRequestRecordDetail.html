@@ -52,6 +52,22 @@
                                 <lightning-output-field field-name="MigrationAssociateCode__c" variant="standard"></lightning-output-field>
                             </lightning-layout-item>
                         </template>
+                        <template lwc:if={scheduleSteps.hasSchedule}>
+                            <lightning-layout-item size="12" padding="around-small">
+                                <div class="schedule-wrapper">
+                                    <p class="schedule-title">簡易スケジュール</p>
+                                    <div class="schedule-flow" role="list" aria-label="簡易スケジュール">
+                                        <template for:each={scheduleSteps.steps} for:item="step">
+                                            <div key={step.id} class={step.itemClass} role="listitem">
+                                                <p class="schedule-deadline">{step.deadlineLabel}</p>
+                                                <p class="schedule-task">{step.label}</p>
+                                                <p class="schedule-date">{step.dateLabel}</p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                        </template>
                     </lightning-layout>
                 </lightning-accordion-section>
                 <template lwc:if={hasReferenceMaterials}>

@@ -34,6 +34,66 @@ const TYPE_SPECIFICDATA_EXPORT = '一部データ抽出';
 const TYPE_TOA_BULKPATCH = 'トーア一括パッチ';
 const TYPE_OTHER_PATCH = 'その他データパッチ';
 
+/** 簡易スケジュール定義（移行日の何営業日前までに何を実施するか） */
+const TYPE_NEW_USE_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_INTEGRATION_USED_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_INTEGRATION_UNUSED_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_ALLDATA_EXPORT_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_SPECIFICDATA_EXPORT_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_TOA_BULKPATCH_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_OTHER_PATCH_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const SCHEDULE_CONFIG = {
+    [TYPE_NEW_USE]: TYPE_NEW_USE_SCHEDULE,
+    [TYPE_INTEGRATION_USED]: TYPE_INTEGRATION_USED_SCHEDULE,
+    [TYPE_INTEGRATION_UNUSED]: TYPE_INTEGRATION_UNUSED_SCHEDULE,
+    [TYPE_ALLDATA_EXPORT]: TYPE_ALLDATA_EXPORT_SCHEDULE,
+    [TYPE_SPECIFICDATA_EXPORT]: TYPE_SPECIFICDATA_EXPORT_SCHEDULE,
+    [TYPE_TOA_BULKPATCH]: TYPE_TOA_BULKPATCH_SCHEDULE,
+    [TYPE_OTHER_PATCH]: TYPE_OTHER_PATCH_SCHEDULE
+};
+
 /** 参考資料の表示定義 */
 const REFERENCE_MATERIALS_CONFIG = {
     [TYPE_INTEGRATION_USED]: [
@@ -410,6 +470,106 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             };
         });
         return msgObj;
+    }
+
+    /**
+     * 移行種別と移行日に応じた簡易スケジュールを返す
+     */
+    get scheduleSteps() {
+        const scheduleConfig = SCHEDULE_CONFIG[this.migrationType];
+        const baseDate = this.parseDate(this.migrationDate);
+
+        if (!scheduleConfig || !baseDate) {
+            return {
+                hasSchedule: false,
+                steps: []
+            };
+        }
+
+        // すべて「移行日」を基準に営業日逆算する
+        const steps = scheduleConfig.map((item, index) => {
+            const targetDate = this.subtractBusinessDays(baseDate, item.businessDaysBefore);
+            return {
+                id: `schedule_${index}`,
+                label: item.label,
+                deadlineLabel: `移行日-${item.businessDaysBefore}営業日`,
+                dateLabel: this.formatDate(targetDate),
+                itemClass: 'schedule-chevron'
+            };
+        });
+
+        steps.push({
+            id: `schedule_${steps.length}`,
+            label: '移行実施',
+            deadlineLabel: '移行日',
+            dateLabel: this.formatDate(baseDate),
+            itemClass: 'schedule-chevron schedule-chevron-final'
+        });
+
+        return {
+            hasSchedule: true,
+            steps
+        };
+    }
+
+    /**
+     * YYYY-MM-DD / ISO 文字列を Date に変換する
+     */
+    parseDate(value) {
+        if (!value) {
+            return null;
+        }
+
+        if (value instanceof Date && !Number.isNaN(value.getTime())) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+
+        if (typeof value === 'string') {
+            const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+                const [, year, month, day] = match;
+                return new Date(Number(year), Number(month) - 1, Number(day));
+            }
+        }
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return null;
+        }
+
+        return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+
+    /**
+     * 指定日から営業日（土日除く）で逆算した日付を返す
+     */
+    subtractBusinessDays(date, businessDays) {
+        const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        let remain = businessDays;
+
+        while (remain > 0) {
+            result.setDate(result.getDate() - 1);
+            const day = result.getDay();
+            if (day !== 0 && day !== 6) {
+                remain -= 1;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 日付を YYYY/MM/DD 形式で返す
+     */
+    formatDate(date) {
+        if (!date) {
+            return '';
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
     }
 
 }
