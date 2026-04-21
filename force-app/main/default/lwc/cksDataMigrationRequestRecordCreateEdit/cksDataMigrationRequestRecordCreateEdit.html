@@ -90,11 +90,6 @@
                                     <lightning-input-field field-name="Campaign__c" value={fieldValues.Campaign__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
-                            <template lwc:if={visibility.campaignMember}>
-                                <lightning-layout-item padding="horizontal-small" size="12">
-                                    <lightning-input-field field-name="CampaignMember__c" value={fieldValues.CampaignMember__c}></lightning-input-field>
-                                </lightning-layout-item>
-                            </template>
                             <template lwc:if={visibility.otherCompany}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="OtherCompany__c" value={fieldValues.OtherCompany__c}></lightning-input-field>

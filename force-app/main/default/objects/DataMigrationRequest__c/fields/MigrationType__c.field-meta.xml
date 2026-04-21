@@ -25,6 +25,11 @@
                 <label>代理店統合(未利用代理店→利用済み代理店)</label>
             </value>
             <value>
+                <fullName>一部証券移管</fullName>
+                <default>false</default>
+                <label>一部証券移管</label>
+            </value>
+            <value>
                 <fullName>全データ抽出</fullName>
                 <default>false</default>
                 <label>全データ抽出</label>

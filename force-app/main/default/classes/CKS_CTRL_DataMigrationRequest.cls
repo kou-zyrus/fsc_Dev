@@ -59,7 +59,6 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
                 Household__c,
                 Relative__c,
                 Campaign__c,
-                CampaignMember__c,
                 OtherCompany__c,
                 Opportunity__c,
                 GraspIntention__c,

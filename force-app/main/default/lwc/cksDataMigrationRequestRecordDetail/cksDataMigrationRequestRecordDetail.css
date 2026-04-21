@@ -70,7 +70,7 @@ table {
     clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%);
 }
 
-.schedule-chevron:first-child {
+.schedule-chevron-first {
     clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%);
     padding-left: 14px;
 }
@@ -119,4 +119,10 @@ table {
 
 .section-a-item {
     margin-bottom: 0.25rem;
+}
+
+.field-row-with-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }

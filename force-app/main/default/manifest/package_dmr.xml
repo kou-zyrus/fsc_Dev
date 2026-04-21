@@ -14,10 +14,6 @@
         <name>AuraDefinitionBundle</name>
     </types>
     <types>
-        <members>DataMigrationRequest__c.*</members>
-        <name>WebLink</name>
-    </types>
-    <types>
         <members>CKS_CTRL_DataMigrationRequest</members>
         <name>ApexClass</name>
     </types>

@@ -1,0 +1,81 @@
+.tableWrapper {
+    max-height: 650px;
+    overflow: auto;
+    background-color: rgb(255, 255, 255);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+thead {
+    background-color: rgb(244, 246, 249);
+    font-weight: bold;
+    color: rgb(22, 50, 92);
+    text-align: center;
+}
+
+th {
+    border: 1px solid rgb(168, 183, 199);
+    padding: 8px;
+    text-align: center;
+    color: rgb(22, 50, 92);
+}
+
+td {
+    border: 1px solid rgb(168, 183, 199);
+    padding: 8px;
+    text-align: left;
+    color: rgb(22, 50, 92);
+}
+
+.longText {
+    word-break: break-all;
+}
+
+.hide-bottom-border {
+    border-top: 1px solid rgb(168, 183, 199);
+    border-bottom: none;
+    padding: 8px;
+}
+
+.hide-top-bottom-border {
+    padding: 8px;
+    border-top: none;
+    border-bottom: none;
+    color: #ffff;
+}
+
+.hide-top-border {
+    border-top: none;
+    border-bottom: 1px solid rgb(168, 183, 199);
+    padding: 8px;
+    color: #ffff;
+}
+
+.hide-right-border {
+    border-top: 1px solid rgb(168, 183, 199);
+    border-right: 1px solid rgb(238, 247, 252);
+    border-bottom: 1px solid rgb(168, 183, 199);
+    padding: 8px;
+}
+
+.show-border {
+    border-top: 1px solid rgb(168, 183, 199);
+    border-bottom: 1px solid rgb(168, 183, 199);
+    padding: 8px;
+}
+
+.integer {
+    text-align: right;
+}
+
+.Total {
+    background-color: rgb(238, 247, 252);
+}
+
+.Subtotal {
+    background-color: rgb(243, 243, 243);
+}

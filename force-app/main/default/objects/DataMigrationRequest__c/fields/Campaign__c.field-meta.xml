@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Campaign__c</fullName>
     <defaultValue>false</defaultValue>
-    <label>募集企画</label>
+    <label>募集企画及び募集企画対象者</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
 </CustomField>

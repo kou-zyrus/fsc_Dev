@@ -29,6 +29,7 @@ const DELETE_CONFIRM_MESSAGE = {
 const TYPE_NEW_USE = '販管から新規利用';
 const TYPE_INTEGRATION_USED = '代理店統合(利用済み代理店間)';
 const TYPE_INTEGRATION_UNUSED = '代理店統合(未利用代理店→利用済み代理店)';
+const TYPE_POLICYS_TRANSFER = '一部証券移管';
 const TYPE_ALLDATA_EXPORT = '全データ抽出';
 const TYPE_SPECIFICDATA_EXPORT = '一部データ抽出';
 const TYPE_TOA_BULKPATCH = 'トーア一括パッチ';
@@ -50,6 +51,13 @@ const TYPE_INTEGRATION_USED_SCHEDULE = [
 ];
 
 const TYPE_INTEGRATION_UNUSED_SCHEDULE = [
+    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
+    { businessDaysBefore: 8, label: '特約事前移行' },
+    { businessDaysBefore: 5, label: '事前データ抽出' },
+    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+];
+
+const TYPE_POLICYS_TRANSFER_SCHEDULE = [
     { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
     { businessDaysBefore: 8, label: '特約事前移行' },
     { businessDaysBefore: 5, label: '事前データ抽出' },
@@ -88,6 +96,7 @@ const SCHEDULE_CONFIG = {
     [TYPE_NEW_USE]: TYPE_NEW_USE_SCHEDULE,
     [TYPE_INTEGRATION_USED]: TYPE_INTEGRATION_USED_SCHEDULE,
     [TYPE_INTEGRATION_UNUSED]: TYPE_INTEGRATION_UNUSED_SCHEDULE,
+    [TYPE_POLICYS_TRANSFER]: TYPE_POLICYS_TRANSFER_SCHEDULE,
     [TYPE_ALLDATA_EXPORT]: TYPE_ALLDATA_EXPORT_SCHEDULE,
     [TYPE_SPECIFICDATA_EXPORT]: TYPE_SPECIFICDATA_EXPORT_SCHEDULE,
     [TYPE_TOA_BULKPATCH]: TYPE_TOA_BULKPATCH_SCHEDULE,
@@ -108,25 +117,24 @@ const REFERENCE_MATERIALS_CONFIG = {
  * 各項目の表示条件定義
  */
 const FIELD_VISIBILITY = {
-    migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED],
-    existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
-    individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED],
-    childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    relative: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    campaign: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    campaignMember: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    opportunity: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    graspIntention: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    personalInformationHandling: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    dailyReport: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    task: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    targetManagement: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER],
+    existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
+    individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER],
+    childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    relative: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    campaign: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    opportunity: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    graspIntention: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    personalInformationHandling: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    dailyReport: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    task: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    targetManagement: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
 };
 
 /** 移行対象オブジェクトごとのメッセージ定義 */
@@ -180,8 +188,16 @@ const MESSAGES_CONFIG = {
             falseImg: IMAGES + '/childGroup.png'
         },
         conditions: []
+    },
+    campaign: {
+        base: { true: false, false: false },
+        conditions: [
+            {
+                condition: (component) => component.campaign && component.migrationType === TYPE_POLICYS_TRANSFER,
+                text: '移管証券が紐づく募集企画対象者(DM発送履歴)及び、それらが登録されている募集企画のみ移行します。'
+            }
+        ]
     }
-    // 必要に応じて他の項目も追加
 };
 
 export default class cksDataMigrationRequestRecordDetail extends NavigationMixin(LightningElement) {
@@ -192,6 +208,8 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     /********************* 汎用制御用プロパティ *********************/
     //ロード中制御
     isLoading = false;
+    //注意事項トグルの開閉状態（デフォルト全閉）
+    messageOpenFlags = Object.fromEntries(Object.keys(MESSAGES_CONFIG).map(key => [key, false]));
     //内部用の表示セクション
     internalActiveSections = ['A', 'B', 'C'];
     //参考資料セクションの自動展開を1回だけ実行するためのフラグ
@@ -230,8 +248,6 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     relative;
     //募集企画
     campaign;
-    //募集企画対象者
-    campaignMember;
     //他社保険契約
     otherCompany;
     //他社特約
@@ -301,7 +317,6 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             this.household = requestData.Household__c;
             this.relative = requestData.Relative__c;
             this.campaign = requestData.Campaign__c;
-            this.campaignMember = requestData.CampaignMember__c;
             this.otherCompany = requestData.OtherCompany__c;
             this.riderOtherCompany = requestData.RiderOtherCompany__c;
             this.opportunity = requestData.Opportunity__c;
@@ -420,6 +435,34 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
         }
     }
 
+    /** 注意事項トグルのクリック処理 */
+    handleMessageToggle(event) {
+        const key = event.currentTarget.dataset.key;
+        this.messageOpenFlags = { ...this.messageOpenFlags, [key]: !this.messageOpenFlags[key] };
+    }
+
+    /** 確認事項をすべて開く（トグルが表示されている項目のみ） */
+    handleOpenAll() {
+        const msgs = this.displayMessages;
+        this.messageOpenFlags = Object.fromEntries(
+            Object.keys(this.messageOpenFlags).map(key => [key, msgs[key]?.hasContent === true])
+        );
+    }
+
+    /** 確認事項をすべて閉じる */
+    handleCloseAll() {
+        this.messageOpenFlags = Object.fromEntries(Object.keys(this.messageOpenFlags).map(key => [key, false]));
+    }
+
+    /** 注意事項トグルのアイコン名（開閉状態に応じて切り替え） */
+    get messageToggleIcons() {
+        const icons = {};
+        Object.keys(this.messageOpenFlags).forEach(key => {
+            icons[key] = this.messageOpenFlags[key] ? 'utility:chevrondown' : 'utility:chevronright';
+        });
+        return icons;
+    }
+
     /**
      * 各項目の表示・非表示を判定するゲッター
      */
@@ -517,6 +560,12 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             };
         }
 
+        const clipDefault = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%)';
+        const clipFirst   = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%)';
+        const chevronBase  = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
+        const chevronFirst = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 14px; ${clipFirst}`;
+        const chevronFinal = `flex:0 0 220px; min-height:88px; background:#c7d7e8; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
+
         // すべて「移行日」を基準に営業日逆算する
         const steps = scheduleConfig.map((item, index) => {
             const targetDate = this.subtractBusinessDays(baseDate, item.businessDaysBefore);
@@ -525,7 +574,8 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
                 label: item.label,
                 deadlineLabel: `移行日-${item.businessDaysBefore}営業日`,
                 dateLabel: this.formatDate(targetDate),
-                itemClass: 'schedule-chevron'
+                itemClass: index === 0 ? 'schedule-chevron schedule-chevron-first' : 'schedule-chevron',
+                itemStyle: index === 0 ? chevronFirst : chevronBase
             };
         });
 
@@ -534,7 +584,8 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             label: '移行実施',
             deadlineLabel: '移行日',
             dateLabel: this.formatDate(baseDate),
-            itemClass: 'schedule-chevron schedule-chevron-final'
+            itemClass: 'schedule-chevron schedule-chevron-final',
+            itemStyle: chevronFinal
         });
 
         return {

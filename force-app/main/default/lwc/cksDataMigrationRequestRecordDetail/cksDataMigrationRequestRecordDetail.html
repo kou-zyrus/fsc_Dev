@@ -54,14 +54,14 @@
                         </template>
                         <template lwc:if={scheduleSteps.hasSchedule}>
                             <lightning-layout-item size="12" padding="around-small">
-                                <div class="schedule-wrapper">
-                                    <p class="schedule-title">簡易スケジュール</p>
-                                    <div class="schedule-flow" role="list" aria-label="簡易スケジュール">
+                                <div class="schedule-wrapper" style="border:1px solid #d8dde6; border-radius:8px; background:#f8fbff; padding:12px;">
+                                    <p class="schedule-title" style="font-weight:700; margin-bottom:8px;">簡易スケジュール</p>
+                                    <div class="schedule-flow" style="display:flex; flex-wrap:nowrap; align-items:stretch; overflow-x:auto; padding-bottom:4px;" role="list" aria-label="簡易スケジュール">
                                         <template for:each={scheduleSteps.steps} for:item="step">
-                                            <div key={step.id} class={step.itemClass} role="listitem">
-                                                <p class="schedule-deadline">{step.deadlineLabel}</p>
-                                                <p class="schedule-task">{step.label}</p>
-                                                <p class="schedule-date">{step.dateLabel}</p>
+                                            <div key={step.id} class={step.itemClass} role="listitem" style={step.itemStyle}>
+                                                <p class="schedule-deadline" style="font-size:12px; color:#31465d; margin-bottom:2px; line-height:1.2;">{step.deadlineLabel}</p>
+                                                <p class="schedule-task" style="font-size:13px; font-weight:700; color:#1f2d3d; margin-bottom:2px; line-height:1.3;">{step.label}</p>
+                                                <p class="schedule-date" style="font-size:12px; color:#425b76; line-height:1.2;">{step.dateLabel}</p>
                                             </div>
                                         </template>
                                     </div>
@@ -86,18 +86,36 @@
                 </template>
                 <lightning-accordion-section name="B" label="移行対象データ(オブジェクト)">
                     <lightning-layout multiple-rows="true">
+                        <lightning-layout-item padding="horizontal-small" size="12">
+                            <div class="slds-m-bottom_x-small">
+                                <lightning-button label="確認事項をすべて開く" onclick={handleOpenAll}></lightning-button>
+                                <lightning-button label="確認事項をすべて閉じる" onclick={handleCloseAll} class="slds-m-left_x-small"></lightning-button>
+                            </div>
+                        </lightning-layout-item>
                         <template lwc:if={visibility.existingContractCustomerNotes}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="既契約者の顧客注意事項" checked={existingContractCustomerNotes} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="既契約者の顧客注意事項" checked={existingContractCustomerNotes} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.existingContractCustomerNotes.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.existingContractCustomerNotes}
+                                            variant="border"
+                                            size="small"
+                                            data-key="existingContractCustomerNotes"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                            <template lwc:if={displayMessages.existingContractCustomerNotes.hasContent}>
+                            <template lwc:if={messageOpenFlags.existingContractCustomerNotes}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.existingContractCustomerNotes.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
                                                     <template lwc:if={message.text}>
-                                                        <span class="message-lines">{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
                                                 </li>
                                             </template>
@@ -108,20 +126,29 @@
                         </template>
                         <template lwc:if={visibility.individual}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="白地顧客及び白地顧客の顧客注意事項" checked={individual} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="白地顧客及び白地顧客の顧客注意事項" checked={individual} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.individual.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.individual}
+                                            variant="border"
+                                            size="small"
+                                            data-key="individual"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                            <template lwc:if={displayMessages.individual.hasContent}>
+                            <template lwc:if={messageOpenFlags.individual}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
-                                        <!-- メッセージをリスト形式で表示 -->
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.individual.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <!-- テキストメッセージ表示 -->
                                                     <template lwc:if={message.text}>
-                                                        <span>{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
-                                                    <!-- 画像表示 -->
                                                     <template lwc:if={message.img}>
                                                         <div class="image-container slds-m-top_small">
                                                             <img src={message.img} alt="説明画像" class="migration-hint-image"/>
@@ -136,16 +163,28 @@
                         </template>
                         <template lwc:if={visibility.masterGroupCustomerNotes}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="マスタ団体の顧客注意事項" checked={masterGroupCustomerNotes} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="マスタ団体の顧客注意事項" checked={masterGroupCustomerNotes} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.masterGroupCustomerNotes.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.masterGroupCustomerNotes}
+                                            variant="border"
+                                            size="small"
+                                            data-key="masterGroupCustomerNotes"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                            <template lwc:if={displayMessages.masterGroupCustomerNotes.hasContent}>
+                            <template lwc:if={messageOpenFlags.masterGroupCustomerNotes}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.masterGroupCustomerNotes.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
                                                     <template lwc:if={message.text}>
-                                                        <span class="message-lines">{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
                                                 </li>
                                             </template>
@@ -156,20 +195,29 @@
                         </template>
                         <template lwc:if={visibility.childGroup}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="白地団体及び白地団体の顧客注意事項" checked={childGroup} disabled></lightning-input>
-                            </lightning-layout-item>                        
-                            <template lwc:if={displayMessages.childGroup.hasContent}>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="白地団体及び白地団体の顧客注意事項" checked={childGroup} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.childGroup.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.childGroup}
+                                            variant="border"
+                                            size="small"
+                                            data-key="childGroup"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
+                            </lightning-layout-item>
+                            <template lwc:if={messageOpenFlags.childGroup}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
-                                        <!-- メッセージをリスト形式で表示 -->
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.childGroup.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <!-- テキストメッセージ表示 -->
                                                     <template lwc:if={message.text}>
-                                                        <span>{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
-                                                    <!-- 画像表示 -->
                                                     <template lwc:if={message.img}>
                                                         <div class="image-container slds-m-top_small">
                                                             <img src={message.img} alt="説明画像" class="migration-hint-image"/>
@@ -184,16 +232,28 @@
                         </template>
                         <template lwc:if={visibility.household}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="世帯" checked={household} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="世帯" checked={household} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.household.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.household}
+                                            variant="border"
+                                            size="small"
+                                            data-key="household"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                            <template lwc:if={displayMessages.household.hasContent}>
+                            <template lwc:if={messageOpenFlags.household}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.household.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
                                                     <template lwc:if={message.text}>
-                                                        <span class="message-lines">{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
                                                     <template lwc:if={message.img}>
                                                         <div class="image-container slds-m-top_small">
@@ -209,16 +269,28 @@
                         </template>
                         <template lwc:if={visibility.relative}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="関係者情報" checked={relative} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="関係者情報" checked={relative} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.relative.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.relative}
+                                            variant="border"
+                                            size="small"
+                                            data-key="relative"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                            <template lwc:if={displayMessages.relative.hasContent}>
+                            <template lwc:if={messageOpenFlags.relative}>
                                 <lightning-layout-item size="12" padding="around-small">
                                     <div class="slds-box slds-theme_shade">
                                         <ul class="slds-list_dotted">
                                             <template for:each={displayMessages.relative.messages} for:item="message">
                                                 <li key={message.id} class="slds-m-bottom_x-small">
                                                     <template lwc:if={message.text}>
-                                                        <span class="message-lines">{message.text}</span>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
                                                     </template>
                                                 </li>
                                             </template>
@@ -229,13 +301,35 @@
                         </template>
                         <template lwc:if={visibility.campaign}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="募集企画" checked={campaign} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="募集企画及び募集企画対象者" checked={campaign} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.campaign.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.campaign}
+                                            variant="border"
+                                            size="small"
+                                            data-key="campaign"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.campaignMember}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="募集企画対象者" checked={campaignMember} disabled></lightning-input>
-                            </lightning-layout-item>
+                            <template lwc:if={messageOpenFlags.campaign}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.campaign.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
                         </template>
                         <template lwc:if={visibility.otherCompany}>
                             <lightning-layout-item padding="horizontal-small" size="12">

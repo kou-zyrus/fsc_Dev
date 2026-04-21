@@ -1,0 +1,40 @@
+<template>
+    <div class="tableWrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>出先コード</th>
+                    <th>メイン担当者名</th>
+                    <th>担当団体数</th>
+                    <th>対応団体数</th>
+                    <th>対応率</th>
+                    <th>対応履歴登録数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={processingResult} for:item="item">
+                    <tr key={item.Id}>
+                        <td class={item.hideBorderMainOperatorAgencyCode}>
+                            {item.MainOperatorAgencyCode}
+                        </td>
+                        <td class={item.totalType}>
+                            {item.MainOperatorName}
+                        </td>
+                        <td class={item.integerClass}>
+                            {item.GroupCountMainOp}
+                        </td>
+                        <td class={item.integerClass}>
+                            {item.EventExistMainOp}
+                        </td>
+                        <td class={item.integerClass}>
+                            {item.eventRate}
+                        </td>
+                        <td class={item.integerClass}>
+                            {item.EventSummaryMainOp}
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</template>
