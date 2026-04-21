@@ -363,8 +363,35 @@
                         </template>
                         <template lwc:if={visibility.event}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="対応" checked={event} disabled></lightning-input>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <lightning-input type="checkbox" label="対応" checked={event} disabled></lightning-input>
+                                    <template lwc:if={displayMessages.event.hasContent}>
+                                        <lightning-button-icon
+                                            icon-name={messageToggleIcons.event}
+                                            variant="border"
+                                            size="small"
+                                            data-key="event"
+                                            onclick={handleMessageToggle}
+                                            alternative-text="注意事項を表示">
+                                        </lightning-button-icon>
+                                    </template>
+                                </div>
                             </lightning-layout-item>
+                            <template lwc:if={messageOpenFlags.event}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.event.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
                         </template>
                         <template lwc:if={visibility.task}>
                             <lightning-layout-item padding="horizontal-small" size="12">
