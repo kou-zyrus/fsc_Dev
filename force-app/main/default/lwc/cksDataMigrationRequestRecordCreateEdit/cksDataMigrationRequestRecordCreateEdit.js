@@ -31,6 +31,7 @@ const FIELD_VISIBILITY = {
     migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED],
     existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED],
     childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     relative: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
@@ -112,6 +113,7 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
                 MigrationAssociateCode__c: s.MigrationAssociateCode__c,
                 ExistingContractCustomerNotes__c: s.ExistingContractCustomerNotes__c,
                 Individual__c: s.Individual__c,
+                MasterGroupCustomerNotes__c: s.MasterGroupCustomerNotes__c,
                 ChildGroup__c: s.ChildGroup__c,
                 Household__c: s.Household__c,
                 Relative__c: s.Relative__c,
@@ -133,6 +135,7 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
             return {
                 ExistingContractCustomerNotes__c: true,
                 Individual__c: true,
+                MasterGroupCustomerNotes__c: true,
                 ChildGroup__c: true,
                 Household__c: true,
                 Relative__c: true,

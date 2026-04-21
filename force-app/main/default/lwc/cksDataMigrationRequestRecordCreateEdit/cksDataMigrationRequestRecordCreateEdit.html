@@ -65,6 +65,11 @@
                                     <lightning-input-field field-name="Individual__c" value={fieldValues.Individual__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.masterGroupCustomerNotes}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="MasterGroupCustomerNotes__c" value={fieldValues.MasterGroupCustomerNotes__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.childGroup}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="ChildGroup__c" value={fieldValues.ChildGroup__c}></lightning-input-field>

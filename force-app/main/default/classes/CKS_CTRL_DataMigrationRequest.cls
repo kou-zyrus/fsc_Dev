@@ -54,6 +54,7 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
                 MigrationAssociateCode__c,
                 ExistingContractCustomerNotes__c,
                 Individual__c,
+                MasterGroupCustomerNotes__c,
                 ChildGroup__c,
                 Household__c,
                 Relative__c,

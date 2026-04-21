@@ -111,6 +111,7 @@ const FIELD_VISIBILITY = {
     migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED],
     existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
     individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED],
     childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     relative: [TYPE_INTEGRATION_USED, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
@@ -133,7 +134,7 @@ const MESSAGES_CONFIG = {
     individual: {
         base: {
             true: false,
-            false: '白地顧客を移行しない場合、白地顧客に紐づく対応・案件等の関連データも移行されません。'
+            false: '白地顧客を移行しない場合、白地顧客に紐づく対応・案件及び意向把握・世帯及び世帯リレーション・関係者情報・他社保険契約お及び他社特約・募集企画対象者・個人情報取り扱い・タスク・添付書類のデータも移行されません。'
         },
         conditions: [
             {
@@ -143,10 +144,39 @@ const MESSAGES_CONFIG = {
             }
         ]
     },
+    existingContractCustomerNotes: {
+        base: {
+            true: '移行対象の判定\n事前抽出作業時点の移行元代理店の自社保険契約について、事前抽出作業時点では移行先代理店に存在しないが移行日の移行先代理店に存在するものを移行対象の自社保険契約データとし、これらの自社保険契約データに契約者として紐づく顧客を下記3パターンで判定します。\n\n①移行対象：事前抽出作業時点では移行先代理店に既契約者として存在しないが、移行日に既契約者として存在する\n②移行対象外：移行先代理店に事前抽出作業時点、移行日にどちらも既契約者として存在する\n③移行対象外：移行先代理店に事前抽出作業時点、移行日にどちらも既契約者として存在しない\n\n移行対象となった既契約者について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しない既契約者については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となった既契約者データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します',
+            false: false
+        },
+        conditions: []
+    },
+    masterGroupCustomerNotes: {
+        base: {
+            true: '移行対象の判定\n事前抽出作業時点の移行元代理店のマスタ団体について、下記3パターンで判定します。\n\n①移行対象：事前抽出作業時点では移行先代理店にマスタ団体として存在しないが、移行日にマスタ団体として存在する\n②移行対象外：移管先代理店に事前抽出作業時点、移行日にどちらもマスタ団体として存在する\n③移行対象外：移管先代理店に事前抽出作業時点、移行日にどちらもマスタ団体として存在しない\n\n移行対象となったマスタ団体について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しないマスタ団体については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となったマスタ団体データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します',
+            false: false
+        },
+        conditions: []
+    },
+    household: {
+        base: {
+            true: '移行対象の顧客に紐づく世帯及び世帯リレーションのみ移行対象となります。\n\n白地顧客が移行対象外の場合の移行作業イメージ',
+            trueImg: IMAGES + '/household.png',
+            false: false
+        },
+        conditions: []
+    },
+    relative: {
+        base: {
+            true: '「顧客」「関係者名」の両項目に移行対象顧客が設定されている関係者情報のみ移行対象となり、いずれかのみ移行対象顧客が設定されている場合は削除します。',
+            false: false
+        },
+        conditions: []
+    },
     childGroup: {
         base: {
             true: false,
-            false: '顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。',
+            false: '白地団体を以降しない場合、顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。',
             falseImg: IMAGES + '/childGroup.png'
         },
         conditions: []
@@ -186,7 +216,7 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     migrationDate;
     //対象代理店コード(7桁)
     associateCode;
-    //移管元代理店コード(７桁)
+    //移行元代理店コード(７桁)
     migrationAssociateCode;
     //既契約者の顧客注意事項
     existingContractCustomerNotes
@@ -266,6 +296,7 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             this.migrationAssociateCode = requestData.MigrationAssociateCode__c;
             this.existingContractCustomerNotes = requestData.ExistingContractCustomerNotes__c;
             this.individual = requestData.Individual__c;
+            this.masterGroupCustomerNotes = requestData.MasterGroupCustomerNotes__c;
             this.childGroup = requestData.ChildGroup__c;
             this.household = requestData.Household__c;
             this.relative = requestData.Relative__c;

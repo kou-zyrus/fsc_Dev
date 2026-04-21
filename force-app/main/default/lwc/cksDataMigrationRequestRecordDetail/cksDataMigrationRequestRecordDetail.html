@@ -90,6 +90,21 @@
                             <lightning-layout-item padding="horizontal-small" size="12">
                                 <lightning-input type="checkbox" label="既契約者の顧客注意事項" checked={existingContractCustomerNotes} disabled></lightning-input>
                             </lightning-layout-item>
+                            <template lwc:if={displayMessages.existingContractCustomerNotes.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.existingContractCustomerNotes.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <span class="message-lines">{message.text}</span>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
                         </template>
                         <template lwc:if={visibility.individual}>
                             <lightning-layout-item padding="horizontal-small" size="12">
@@ -111,6 +126,26 @@
                                                         <div class="image-container slds-m-top_small">
                                                             <img src={message.img} alt="説明画像" class="migration-hint-image"/>
                                                         </div>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
+                        </template>
+                        <template lwc:if={visibility.masterGroupCustomerNotes}>
+                            <lightning-layout-item padding="horizontal-small" size="12">
+                                <lightning-input type="checkbox" label="マスタ団体の顧客注意事項" checked={masterGroupCustomerNotes} disabled></lightning-input>
+                            </lightning-layout-item>
+                            <template lwc:if={displayMessages.masterGroupCustomerNotes.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.masterGroupCustomerNotes.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <span class="message-lines">{message.text}</span>
                                                     </template>
                                                 </li>
                                             </template>
@@ -151,11 +186,46 @@
                             <lightning-layout-item padding="horizontal-small" size="12">
                                 <lightning-input type="checkbox" label="世帯" checked={household} disabled></lightning-input>
                             </lightning-layout-item>
+                            <template lwc:if={displayMessages.household.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.household.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <span class="message-lines">{message.text}</span>
+                                                    </template>
+                                                    <template lwc:if={message.img}>
+                                                        <div class="image-container slds-m-top_small">
+                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                        </div>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
                         </template>
                         <template lwc:if={visibility.relative}>
                             <lightning-layout-item padding="horizontal-small" size="12">
                                 <lightning-input type="checkbox" label="関係者情報" checked={relative} disabled></lightning-input>
                             </lightning-layout-item>
+                            <template lwc:if={displayMessages.relative.hasContent}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div class="slds-box slds-theme_shade">
+                                        <ul class="slds-list_dotted">
+                                            <template for:each={displayMessages.relative.messages} for:item="message">
+                                                <li key={message.id} class="slds-m-bottom_x-small">
+                                                    <template lwc:if={message.text}>
+                                                        <span class="message-lines">{message.text}</span>
+                                                    </template>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </lightning-layout-item>
+                            </template>
                         </template>
                         <template lwc:if={visibility.campaign}>
                             <lightning-layout-item padding="horizontal-small" size="12">

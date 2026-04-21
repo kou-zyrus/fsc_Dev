@@ -29,6 +29,10 @@ table {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 少し影をつけて浮かせる */
 }
 
+.message-lines {
+    white-space: pre-line;
+}
+
 /* メッセージボックスの装飾 */
 .slds-box {
     border-left: 4px solid #1589ee;
