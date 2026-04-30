@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>AccountContactRelation__c</fullName>
+    <defaultValue>false</defaultValue>
+    <label>取引先と取引先責任者のリレーション</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

@@ -122,19 +122,64 @@ const FIELD_VISIBILITY = {
     individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
     masterGroupCustomerNotes: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER],
     childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    relative: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    // 全データ抽出専用（household より前に表示）
+    user: [TYPE_ALLDATA_EXPORT],
+    recordTypeMaster: [TYPE_ALLDATA_EXPORT],
+    associateBranchMaster: [TYPE_ALLDATA_EXPORT],
+    masterGroup: [TYPE_ALLDATA_EXPORT],
+    childGroupOnly: [TYPE_ALLDATA_EXPORT],
+    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（household と relative の間）
+    individualOnly: [TYPE_ALLDATA_EXPORT],
+    existingContract: [TYPE_ALLDATA_EXPORT],
+    clientClassificationMaster: [TYPE_ALLDATA_EXPORT],
+    customerNotes: [TYPE_ALLDATA_EXPORT],
+    relative: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（relative と campaign の間）
+    accountContactRelation: [TYPE_ALLDATA_EXPORT],
+    campaignOnly: [TYPE_ALLDATA_EXPORT],
+    campaignMember: [TYPE_ALLDATA_EXPORT],
     campaign: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    opportunity: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    graspIntention: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（otherCompany と riderOtherCompany の間）
+    ownCompany: [TYPE_ALLDATA_EXPORT],
+    riderOwnCompany: [TYPE_ALLDATA_EXPORT],
+    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（riderOtherCompany と opportunity の間）
+    incomingChannelLeadsMaster: [TYPE_ALLDATA_EXPORT],
+    opportunity: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（opportunity と graspIntention の間）
+    opportunityInsurancePolicyAssociation: [TYPE_ALLDATA_EXPORT],
+    designDocument: [TYPE_ALLDATA_EXPORT],
+    graspIntention: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（graspIntention と personalInformationHandling の間）
+    comparisonRecommendedProduct: [TYPE_ALLDATA_EXPORT],
+    bringOut: [TYPE_ALLDATA_EXPORT],
+    shipping: [TYPE_ALLDATA_EXPORT],
+    receipt: [TYPE_ALLDATA_EXPORT],
+    storage: [TYPE_ALLDATA_EXPORT],
     personalInformationHandling: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    dailyReport: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    task: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    targetManagement: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
+    dailyReport: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（dailyReport と event の間）
+    contactClassMaster: [TYPE_ALLDATA_EXPORT],
+    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（event と task の間）
+    texttemplate: [TYPE_ALLDATA_EXPORT],
+    task: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（attachmentDoc と targetManagement の間）
+    planningTargetClassification: [TYPE_ALLDATA_EXPORT],
+    agencyContactMaster: [TYPE_ALLDATA_EXPORT],
+    targetManagement: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
+    // 全データ抽出専用（targetManagement 以降）
+    contact: [TYPE_ALLDATA_EXPORT],
+    status: [TYPE_ALLDATA_EXPORT],
+    product2: [TYPE_ALLDATA_EXPORT],
+    productCommissionPercent: [TYPE_ALLDATA_EXPORT],
+    analyticsPermissionMaster: [TYPE_ALLDATA_EXPORT],
+    contentDocumentLink: [TYPE_ALLDATA_EXPORT],
+    contentVersion: [TYPE_ALLDATA_EXPORT],
+    cksDesignDocumentDivision: [TYPE_ALLDATA_EXPORT],
 };
 
 /** 移行対象オブジェクトごとのメッセージ定義 */
@@ -277,6 +322,41 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     targetManagement;
     //最終更新日
     lastModifiedDate;
+    //全データ抽出専用項目
+    user;
+    recordTypeMaster;
+    associateBranchMaster;
+    masterGroup;
+    childGroupOnly;
+    individualOnly;
+    existingContract;
+    clientClassificationMaster;
+    customerNotes;
+    accountContactRelation;
+    campaignOnly;
+    campaignMember;
+    ownCompany;
+    riderOwnCompany;
+    incomingChannelLeadsMaster;
+    opportunityInsurancePolicyAssociation;
+    designDocument;
+    comparisonRecommendedProduct;
+    bringOut;
+    shipping;
+    receipt;
+    storage;
+    contactClassMaster;
+    texttemplate;
+    planningTargetClassification;
+    agencyContactMaster;
+    contact;
+    status;
+    product2;
+    productCommissionPercent;
+    analyticsPermissionMaster;
+    contentDocumentLink;
+    contentVersion;
+    cksDesignDocumentDivision;
 
     /********************* 全体の表示制御 *********************/
     get displayAll(){
@@ -335,6 +415,40 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             this.attachmentDoc = requestData.AttachmentDoc__c;
             this.targetManagement = requestData.TargetManagement__c;
             this.lastModifiedDate = requestData.LastModifiedDate;
+            this.user = requestData.User__c;
+            this.recordTypeMaster = requestData.RecordTypeMaster__c;
+            this.associateBranchMaster = requestData.AssociateBranchMaster__c;
+            this.masterGroup = requestData.MasterGroup__c;
+            this.childGroupOnly = requestData.ChildGroupOnly__c;
+            this.individualOnly = requestData.IndividualOnly__c;
+            this.existingContract = requestData.ExistingContract__c;
+            this.clientClassificationMaster = requestData.ClientClassificationMaster__c;
+            this.customerNotes = requestData.CustomerNotes__c;
+            this.accountContactRelation = requestData.AccountContactRelation__c;
+            this.campaignOnly = requestData.CampaignOnly__c;
+            this.campaignMember = requestData.CampaignMember__c;
+            this.ownCompany = requestData.OwnCompany__c;
+            this.riderOwnCompany = requestData.RiderOwnCompany__c;
+            this.incomingChannelLeadsMaster = requestData.IncomingChannel_LeadsMaster__c;
+            this.opportunityInsurancePolicyAssociation = requestData.OpportunityInsurancePolicyAssociation__c;
+            this.designDocument = requestData.DesignDocument__c;
+            this.comparisonRecommendedProduct = requestData.ComparisonRecommendedProduct__c;
+            this.bringOut = requestData.BringOut__c;
+            this.shipping = requestData.Shipping__c;
+            this.receipt = requestData.Receipt__c;
+            this.storage = requestData.Storage__c;
+            this.contactClassMaster = requestData.ContactClassMaster__c;
+            this.texttemplate = requestData.Texttemplate__c;
+            this.planningTargetClassification = requestData.PlanningTargetClassification__c;
+            this.agencyContactMaster = requestData.AgencyContactMaster__c;
+            this.contact = requestData.Contact__c;
+            this.status = requestData.Status__c;
+            this.product2 = requestData.Product2__c;
+            this.productCommissionPercent = requestData.ProductCommissionPercent__c;
+            this.analyticsPermissionMaster = requestData.AnalyticsPermissionMaster__c;
+            this.contentDocumentLink = requestData.ContentDocumentLink__c;
+            this.contentVersion = requestData.ContentVersion__c;
+            this.cksDesignDocumentDivision = requestData.CKS_DesignDocumentDivision__c;
             this.setDefaultActiveSections();
         }catch(error){
             this.error = error;
