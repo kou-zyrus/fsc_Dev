@@ -454,7 +454,11 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
                 AND TargetField__c = :targetField
                 LIMIT 1
             ];
-            if (!existing.isEmpty()) {
+            if (String.isBlank(memoText)) {
+                if (!existing.isEmpty()) {
+                    delete as system existing[0];
+                }
+            } else if (!existing.isEmpty()) {
                 existing[0].Memo__c = memoText;
                 update as system existing[0];
             } else {
