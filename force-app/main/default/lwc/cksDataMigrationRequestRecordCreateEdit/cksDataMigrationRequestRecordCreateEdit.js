@@ -111,7 +111,10 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
         try {
             const masters = await getMigrationTypeMasters();
             this.migrationTypeMasterList = masters;
-            this.migrationTypeMasterOptions = masters.map(m => ({ label: m.Name, value: m.Id }));
+            this.migrationTypeMasterOptions = masters.map(m => ({
+                label: m.StandardDays__c != null ? `${m.Name} [${m.StandardDays__c}営業日]` : m.Name,
+                value: m.Id
+            }));
 
             if (this.recordId) {
                 const data = await getEditSetupData({ recordId: this.recordId });

@@ -133,7 +133,7 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
     @AuraEnabled(cacheable=true)
     public static List<DataMigrationTypeMaster__c> getMigrationTypeMasters() {
         try {
-            return [SELECT Id, Name, Order__c, TargetObject__c, DefaultCheck__c FROM DataMigrationTypeMaster__c ORDER BY Order__c ASC NULLS LAST];
+            return [SELECT Id, Name, Order__c, TargetObject__c, DefaultCheck__c, StandardDays__c FROM DataMigrationTypeMaster__c ORDER BY Order__c ASC NULLS LAST];
         } catch (Exception e) {
             String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
             AuraHandledException ae = new AuraHandledException(errorMessage);
