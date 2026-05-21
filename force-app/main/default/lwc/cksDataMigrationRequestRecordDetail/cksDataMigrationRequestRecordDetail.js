@@ -16,6 +16,8 @@ import IMAGES from '@salesforce/resourceUrl/DataMigrationRequestImages';
 
 import { deleteRecord } from 'lightning/uiRecordApi';
 import getEditSetupData from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getEditSetupData';
+import getMemos from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getMemos';
+import saveMemo from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.saveMemo';
 
 /** 削除確認メッセージ */
 const DELETE_CONFIRM_MESSAGE = {
@@ -44,10 +46,10 @@ const TYPE_NEW_USE_SCHEDULE = [
 ];
 
 const TYPE_INTEGRATION_USED_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
+    { businessDaysBefore: 10, label: '依頼登録〆切り' },
+    { businessDaysBefore: 8, label: '事前データ抽出' },
+    { businessDaysBefore: 5, label: '事前抽出データ確認', outputs: ['データチェック報告書(各種データ件数及び移行内容)'] },
+    { businessDaysBefore: 3, label: '移管前データ抽出(ユーザー登録以降)' }
 ];
 
 const TYPE_INTEGRATION_UNUSED_SCHEDULE = [
@@ -180,6 +182,7 @@ const FIELD_VISIBILITY = {
     contentDocumentLink: [TYPE_ALLDATA_EXPORT],
     contentVersion: [TYPE_ALLDATA_EXPORT],
     cksDesignDocumentDivision: [TYPE_ALLDATA_EXPORT],
+    otherRequest: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
 };
 
 /** 移行対象オブジェクトごとのメッセージ定義 */
@@ -189,24 +192,32 @@ const MESSAGES_CONFIG = {
             true: false,
             false: '白地顧客を移行しない場合、白地顧客に紐づく対応・案件及び意向把握・世帯及び世帯リレーション・関係者情報・他社保険契約お及び他社特約・募集企画対象者・個人情報取り扱い・タスク・添付書類のデータも移行されません。'
         },
-        conditions: [
-            {
-                condition: (component) => !component.individual && component.otherCompany,
-                text: '【他社証券データについて】移行元において被保険者として白地顧客が設定されていると、白地顧客が移行されない場合に該当の他社証券データの編集時にエラーが発生するため、該当する他社証券データの被保険者項目はブランクにします。',
-                img: IMAGES + '/indivisualOtherCompany.png'
-            }
-        ]
+        conditions: []
+    },
+    otherCompany: {
+        base: {
+            true: '移行元において被保険者として移行対象外顧客が設定されていると、移行先における該当の他社証券データの編集時にエラーが発生するため、該当する他社証券データの被保険者項目はブランクにします。',
+            trueImg: IMAGES + '/indivisualOtherCompany.png',
+            false: false
+        },
+        conditions: []
     },
     existingContractCustomerNotes: {
         base: {
-            true: '移行対象の判定\n事前抽出作業時点の移行元代理店の自社保険契約について、事前抽出作業時点では移行先代理店に存在しないが移行日の移行先代理店に存在するものを移行対象の自社保険契約データとし、これらの自社保険契約データに契約者として紐づく顧客を下記3パターンで判定します。\n\n①移行対象：事前抽出作業時点では移行先代理店に既契約者として存在しないが、移行日に既契約者として存在する\n②移行対象外：移行先代理店に事前抽出作業時点、移行日にどちらも既契約者として存在する\n③移行対象外：移行先代理店に事前抽出作業時点、移行日にどちらも既契約者として存在しない\n\n移行対象となった既契約者について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しない既契約者については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となった既契約者データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します',
+            true: [
+                '移行対象の判定\n移行日の移行先代理店の自社保険契約に契約者として紐づく顧客について、移行元代理店にも存在する顧客を移行対象の既契約者データとします。',
+                '顧客注意事項データ及び関連データの処理\n移行対象となった既契約者について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しない既契約者については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となった移行元代理店の既契約者データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します。\n\n移行対象外となった既契約者に紐づく対応・案件及び意向把握・世帯及び世帯リレーション・関係者情報・他社保険契約お及び他社特約・募集企画対象者・個人情報取り扱い・タスク・添付書類のデータも移行されません。'
+            ],
             false: false
         },
         conditions: []
     },
     masterGroupCustomerNotes: {
         base: {
-            true: '移行対象の判定\n事前抽出作業時点の移行元代理店のマスタ団体について、下記3パターンで判定します。\n\n①移行対象：事前抽出作業時点では移行先代理店にマスタ団体として存在しないが、移行日にマスタ団体として存在する\n②移行対象外：移管先代理店に事前抽出作業時点、移行日にどちらもマスタ団体として存在する\n③移行対象外：移管先代理店に事前抽出作業時点、移行日にどちらもマスタ団体として存在しない\n\n移行対象となったマスタ団体について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しないマスタ団体については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となったマスタ団体データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します',
+            true: [
+                '移行対象の判定\n移行日の移行先代理店のマスタ団体について、移行元代理店にも存在するマスタ団体を移行対象のマスタ団体データとします。',
+                '顧客注意事項データ及び関連データの処理\n移行対象となったマスタ団体について、移行元代理店の顧客注意事項データを移行します。\nただし、移行日に移行先代理店の顧客注意事項が存在していた場合、移行元代理店データによる上書きはおこないません\nまた、移行日に移行元代理店・移行先代理店の両方に顧客注意事項が存在しないマスタ団体については、空の顧客注意事項を移行先代理店に作成します。\n※移行対象外となったマスタ団体データ及び顧客注意事項データは判定理由を付与してエクセルファイルにてご連携します\n\n移行対象外となったマスタ団体に紐づく対応のデータも移行されません。'
+                ],
             false: false
         },
         conditions: []
@@ -229,7 +240,7 @@ const MESSAGES_CONFIG = {
     childGroup: {
         base: {
             true: false,
-            false: '白地団体を以降しない場合、顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。',
+            false: '白地団体を以降しない場合、顧客の「団体」「団体第2階層」「団体第3階層」に移行元の白地団体が設定されていると画面からの顧客情報の編集や手動名寄せにおいてエラーとなるため、移行対象顧客の該当項目に移行元の白地団体が設定されていた場合はブランクにします。\n\n白地団体を移行しない場合、白地団体に紐づく対応データも移行されません。',
             falseImg: IMAGES + '/childGroup.png'
         },
         conditions: []
@@ -252,6 +263,64 @@ const MESSAGES_CONFIG = {
     }
 };
 
+/**
+ * セクションBの全項目定義（key → 画面表示ラベル）
+ * FIELD_VISIBILITYの表示順と一致させる（migrationAssociateCode・otherRequestは除く）
+ */
+const TOGGLE_ITEMS = {
+    existingContractCustomerNotes: '既契約者の顧客注意事項',
+    individual:                    '白地顧客及び白地顧客の顧客注意事項',
+    masterGroupCustomerNotes:      'マスタ団体の顧客注意事項',
+    childGroup:                    '白地団体及び白地団体の顧客注意事項',
+    user:                          'ユーザ',
+    recordTypeMaster:              'レコードタイプマスター',
+    associateBranchMaster:         '代理店出先マスタ',
+    masterGroup:                   'マスタ団体',
+    childGroupOnly:                '白地団体',
+    household:                     '世帯',
+    individualOnly:                '白地顧客',
+    existingContract:              '既契約者',
+    clientClassificationMaster:    '顧客分類マスタ',
+    customerNotes:                 '顧客注意事項',
+    relative:                      '関係者情報',
+    accountContactRelation:        '取引先と取引先責任者のリレーション',
+    campaignOnly:                  '募集企画',
+    campaignMember:                'キャンペーンメンバー',
+    campaign:                      '募集企画及び募集企画対象者',
+    otherCompany:                  '他社保険契約',
+    ownCompany:                    '自社保険契約',
+    riderOwnCompany:               '自社特約',
+    riderOtherCompany:             '他社特約',
+    incomingChannelLeadsMaster:    '受付経路マスタ',
+    opportunity:                   '案件',
+    opportunityInsurancePolicyAssociation: '案件保険契約関係',
+    designDocument:                '設計書',
+    graspIntention:                '意向把握',
+    comparisonRecommendedProduct:  '比較推奨商品',
+    bringOut:                      '持出履歴',
+    shipping:                      '発送履歴',
+    receipt:                       '受領履歴',
+    storage:                       '個人データ管理',
+    personalInformationHandling:   '個人情報取り扱い(持出履歴・発送履歴・受領履歴・個人データ管理)',
+    dailyReport:                   '日報',
+    contactClassMaster:            '対応種別マスタ',
+    event:                         '対応',
+    texttemplate:                  'テキストテンプレート',
+    task:                          'タスク',
+    attachmentDoc:                 '添付書類',
+    planningTargetClassification:  '募集企画対象者区分マスタ',
+    agencyContactMaster:           '所属部署マスタ',
+    targetManagement:              '目標',
+    contact:                       '取引先責任者',
+    status:                        '主契約ステータス',
+    product2:                      '商品',
+    productCommissionPercent:      '商品手数料率',
+    analyticsPermissionMaster:     'Analytics権限マスタ',
+    contentDocumentLink:           'ContentDocumentLink',
+    contentVersion:                'ContentVersion',
+    cksDesignDocumentDivision:     '設計書区分マスタ',
+};
+
 export default class cksDataMigrationRequestRecordDetail extends NavigationMixin(LightningElement) {
         /********************* 公開プロパティ *********************/
     //申込詳細情報レコードID
@@ -260,8 +329,12 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     /********************* 汎用制御用プロパティ *********************/
     //ロード中制御
     isLoading = false;
-    //注意事項トグルの開閉状態（デフォルト全閉）
-    messageOpenFlags = Object.fromEntries(Object.keys(MESSAGES_CONFIG).map(key => [key, false]));
+    //注意事項・メモトグルの開閉状態（デフォルト全閉）
+    messageOpenFlags = Object.fromEntries(Object.keys(TOGGLE_ITEMS).map(key => [key, false]));
+    //メモ入力値（key: TOGGLE_ITEMSのキー, value: 入力テキスト）
+    memoValues = {};
+    //保存済みメモ値（差分検出用）
+    savedMemoValues = {};
     //内部用の表示セクション
     internalActiveSections = ['A', 'B', 'C'];
     //参考資料セクションの自動展開を1回だけ実行するためのフラグ
@@ -376,6 +449,17 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
 
     //描画後処理
     renderedCallback() {
+        // メモ textarea: 保存済み値の反映と高さ自動調整
+        this.template.querySelectorAll('textarea.memo-textarea').forEach(ta => {
+            const key = ta.dataset.key;
+            const savedValue = this.memoValues[key] || '';
+            if (ta.value !== savedValue) {
+                ta.value = savedValue;
+            }
+            ta.style.height = 'auto';
+            ta.style.height = ta.scrollHeight + 'px';
+        });
+
         if (!this.hasReferenceMaterials || this.hasAppliedReferenceAutoOpen || this.isReferenceAutoOpenQueued) {
             return;
         }
@@ -449,6 +533,24 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             this.contentDocumentLink = requestData.ContentDocumentLink__c;
             this.contentVersion = requestData.ContentVersion__c;
             this.cksDesignDocumentDivision = requestData.CKS_DesignDocumentDivision__c;
+
+            // メモ読み込み
+            const memos = await getMemos({ recordId: this.recordId });
+            const labelToKey = Object.fromEntries(
+                Object.entries(TOGGLE_ITEMS).map(([k, v]) => [v, k])
+            );
+            const memoVals = {};
+            const savedMemoVals = {};
+            memos.forEach(memo => {
+                const key = labelToKey[memo.TargetField__c];
+                if (key) {
+                    memoVals[key] = memo.Memo__c || '';
+                    savedMemoVals[key] = memo.Memo__c || '';
+                }
+            });
+            this.memoValues = memoVals;
+            this.savedMemoValues = savedMemoVals;
+
             this.setDefaultActiveSections();
         }catch(error){
             this.error = error;
@@ -562,17 +664,40 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
         this.messageOpenFlags = { ...this.messageOpenFlags, [key]: !this.messageOpenFlags[key] };
     }
 
-    /** 確認事項をすべて開く（トグルが表示されている項目のみ） */
+    /** 確認事項・メモをすべて開く */
     handleOpenAll() {
-        const msgs = this.displayMessages;
         this.messageOpenFlags = Object.fromEntries(
-            Object.keys(this.messageOpenFlags).map(key => [key, msgs[key]?.hasContent === true])
+            Object.keys(this.messageOpenFlags).map(key => [key, true])
         );
     }
 
-    /** 確認事項をすべて閉じる */
+    /** 確認事項・メモをすべて閉じる */
     handleCloseAll() {
         this.messageOpenFlags = Object.fromEntries(Object.keys(this.messageOpenFlags).map(key => [key, false]));
+    }
+
+    /** メモ入力値の変更追跡＋高さ自動調整 */
+    handleMemoChange(event) {
+        const key = event.currentTarget.dataset.key;
+        this.memoValues = { ...this.memoValues, [key]: event.target.value };
+        const ta = event.target;
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+    }
+
+    /** メモのフォーカスアウト時に保存 */
+    async handleMemoSave(event) {
+        const key = event.currentTarget.dataset.key;
+        const label = TOGGLE_ITEMS[key];
+        const memoText = this.memoValues[key] || '';
+        const savedText = this.savedMemoValues[key] || '';
+        if (memoText === savedText) return;
+        try {
+            await saveMemo({ recordId: this.recordId, targetField: label, memoText });
+            this.savedMemoValues = { ...this.savedMemoValues, [key]: memoText };
+        } catch (error) {
+            this.error = error;
+        }
     }
 
     /** 注意事項トグルのアイコン名（開閉状態に応じて切り替え） */
@@ -622,6 +747,31 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     }
 
     /**
+     * セクションBの表示項目配列（可視 + TOGGLE_ITEMS に含まれる項目のみ）
+     * for:each ループで使用する
+     */
+    get sectionBItems() {
+        const vis = this.visibility;
+        const msgs = this.displayMessages;
+        return Object.entries(TOGGLE_ITEMS)
+            .filter(([key]) => vis[key])
+            .map(([key, label]) => {
+                const msgData = msgs[key] || { messages: [], hasContent: false };
+                const isOpen = this.messageOpenFlags[key] || false;
+                return {
+                    key,
+                    label,
+                    checked: this[key] || false,
+                    messages: msgData.messages,
+                    hasContent: msgData.hasContent,
+                    isOpen,
+                    memoValue: this.memoValues[key] || '',
+                    toggleIcon: isOpen ? 'utility:chevrondown' : 'utility:chevronright'
+                };
+            });
+    }
+
+    /**
      * 各オブジェクトの現在の値（True/False）に応じた表示用オブジェクトを返す
      * 複数のメッセージをメッセージ配列として返す
      * HTML側では {displayMessages.individual.messages} でループして参照
@@ -634,16 +784,27 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             const messages = [];
             let messageIndex = 0;
 
-            // 基本メッセージを追加
-            const baseText = isChecked ? config.base.true : config.base.false;
-            const baseImg = isChecked ? config.base.trueImg : config.base.falseImg;
-            
-            if (baseText || baseImg) {
-                messages.push({
-                    id: `${key}_${messageIndex++}`,
-                    text: baseText,
-                    img: baseImg
-                });
+            // 基本メッセージを追加（true/false に配列を渡すと要素ごとに別 li として表示）
+            const baseValue = isChecked ? config.base.true : config.base.false;
+            const baseImg   = isChecked ? config.base.trueImg : config.base.falseImg;
+            const baseTexts = Array.isArray(baseValue) ? baseValue : (baseValue ? [baseValue] : []);
+
+            if (baseTexts.length > 0 || baseImg) {
+                if (baseTexts.length > 0) {
+                    baseTexts.forEach((text, ti) => {
+                        messages.push({
+                            id: `${key}_${messageIndex++}`,
+                            text,
+                            img: ti === baseTexts.length - 1 ? baseImg : undefined
+                        });
+                    });
+                } else {
+                    messages.push({
+                        id: `${key}_${messageIndex++}`,
+                        text: false,
+                        img: baseImg
+                    });
+                }
             }
 
             // 複合条件メッセージを追加
@@ -695,6 +856,8 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
                 label: item.label,
                 deadlineLabel: `移行日-${item.businessDaysBefore}営業日`,
                 dateLabel: this.formatDate(targetDate),
+                outputs: (item.outputs || []).map((text, i) => ({ id: `out_${index}_${i}`, text })),
+                hasOutputs: (item.outputs || []).length > 0,
                 itemClass: index === 0 ? 'schedule-chevron schedule-chevron-first' : 'schedule-chevron',
                 itemStyle: index === 0 ? chevronFirst : chevronBase
             };
@@ -705,6 +868,8 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             label: '移行実施',
             deadlineLabel: '移行日',
             dateLabel: this.formatDate(baseDate),
+            outputs: [],
+            hasOutputs: false,
             itemClass: 'schedule-chevron schedule-chevron-final',
             itemStyle: chevronFinal
         });

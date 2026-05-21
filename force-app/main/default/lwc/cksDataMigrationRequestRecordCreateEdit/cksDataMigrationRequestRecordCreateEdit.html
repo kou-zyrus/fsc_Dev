@@ -46,13 +46,7 @@
                         <lightning-layout multiple-rows="true" vertical-align="center">
                             <template lwc:if={showBlankRowsInSectionB}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
-                                    <div class="section-b-blank-row"></div>
-                                </lightning-layout-item>
-                                <lightning-layout-item padding="horizontal-small" size="12">
-                                    <div class="section-b-blank-row"></div>
-                                </lightning-layout-item>
-                                <lightning-layout-item padding="horizontal-small" size="12">
-                                    <div class="section-b-blank-row"></div>
+                                    <div style="height:200px;"></div>
                                 </lightning-layout-item>
                             </template>
                             <template lwc:if={visibility.existingContractCustomerNotes}>
@@ -75,14 +69,74 @@
                                     <lightning-input-field field-name="ChildGroup__c" value={fieldValues.ChildGroup__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.user}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="User__c" value={fieldValues.User__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.recordTypeMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="RecordTypeMaster__c" value={fieldValues.RecordTypeMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.associateBranchMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="AssociateBranchMaster__c" value={fieldValues.AssociateBranchMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.masterGroup}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="MasterGroup__c" value={fieldValues.MasterGroup__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.childGroupOnly}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ChildGroupOnly__c" value={fieldValues.ChildGroupOnly__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.household}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="Household__c" value={fieldValues.Household__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.individualOnly}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="IndividualOnly__c" value={fieldValues.IndividualOnly__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.existingContract}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ExistingContract__c" value={fieldValues.ExistingContract__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.clientClassificationMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ClientClassificationMaster__c" value={fieldValues.ClientClassificationMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.customerNotes}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="CustomerNotes__c" value={fieldValues.CustomerNotes__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.relative}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="Relative__c" value={fieldValues.Relative__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.accountContactRelation}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="AccountContactRelation__c" value={fieldValues.AccountContactRelation__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.campaignOnly}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="CampaignOnly__c" value={fieldValues.CampaignOnly__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.campaignMember}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="CampaignMember__c" value={fieldValues.CampaignMember__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
                             <template lwc:if={visibility.campaign}>
@@ -95,9 +149,24 @@
                                     <lightning-input-field field-name="OtherCompany__c" value={fieldValues.OtherCompany__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.ownCompany}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="OwnCompany__c" value={fieldValues.OwnCompany__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.riderOwnCompany}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="RiderOwnCompany__c" value={fieldValues.RiderOwnCompany__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.riderOtherCompany}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="RiderOtherCompany__c" value={fieldValues.RiderOtherCompany__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.incomingChannelLeadsMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="IncomingChannel_LeadsMaster__c" value={fieldValues.IncomingChannel_LeadsMaster__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
                             <template lwc:if={visibility.opportunity}>
@@ -105,9 +174,44 @@
                                     <lightning-input-field field-name="Opportunity__c" value={fieldValues.Opportunity__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.opportunityInsurancePolicyAssociation}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="OpportunityInsurancePolicyAssociation__c" value={fieldValues.OpportunityInsurancePolicyAssociation__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.designDocument}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="DesignDocument__c" value={fieldValues.DesignDocument__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.graspIntention}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="GraspIntention__c" value={fieldValues.GraspIntention__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.comparisonRecommendedProduct}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ComparisonRecommendedProduct__c" value={fieldValues.ComparisonRecommendedProduct__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.bringOut}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="BringOut__c" value={fieldValues.BringOut__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.shipping}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Shipping__c" value={fieldValues.Shipping__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.receipt}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Receipt__c" value={fieldValues.Receipt__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.storage}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Storage__c" value={fieldValues.Storage__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
                             <template lwc:if={visibility.personalInformationHandling}>
@@ -120,9 +224,19 @@
                                     <lightning-input-field field-name="DailyReport__c" value={fieldValues.DailyReport__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.contactClassMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ContactClassMaster__c" value={fieldValues.ContactClassMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.event}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="Event__c" value={fieldValues.Event__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.texttemplate}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Texttemplate__c" value={fieldValues.Texttemplate__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
                             <template lwc:if={visibility.task}>
@@ -135,9 +249,64 @@
                                     <lightning-input-field field-name="AttachmentDoc__c" value={fieldValues.AttachmentDoc__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={visibility.planningTargetClassification}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="PlanningTargetClassification__c" value={fieldValues.PlanningTargetClassification__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.agencyContactMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="AgencyContactMaster__c" value={fieldValues.AgencyContactMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
                             <template lwc:if={visibility.targetManagement}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="TargetManagement__c" value={fieldValues.TargetManagement__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.contact}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Contact__c" value={fieldValues.Contact__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.status}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Status__c" value={fieldValues.Status__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.product2}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="Product2__c" value={fieldValues.Product2__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.productCommissionPercent}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ProductCommissionPercent__c" value={fieldValues.ProductCommissionPercent__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.analyticsPermissionMaster}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="AnalyticsPermissionMaster__c" value={fieldValues.AnalyticsPermissionMaster__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.contentDocumentLink}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ContentDocumentLink__c" value={fieldValues.ContentDocumentLink__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.contentVersion}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="ContentVersion__c" value={fieldValues.ContentVersion__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.cksDesignDocumentDivision}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="CKS_DesignDocumentDivision__c" value={fieldValues.CKS_DesignDocumentDivision__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={visibility.otherRequest}>
+                                <lightning-layout-item padding="horizontal-small" size="12">
+                                    <lightning-input-field field-name="OtherRequest__c" value={fieldValues.OtherRequest__c}></lightning-input-field>
                                 </lightning-layout-item>
                             </template>
                         </lightning-layout>

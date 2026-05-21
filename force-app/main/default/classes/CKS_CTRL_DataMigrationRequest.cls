@@ -103,6 +103,7 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
                 ContentDocumentLink__c,
                 ContentVersion__c,
                 CKS_DesignDocumentDivision__c,
+                OtherRequest__c,
                 LastModifiedDate
                 FROM DataMigrationRequest__c
                 WHERE Id = :recordId
@@ -369,6 +370,64 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
         // }
     }
     
+    /**
+     * @description
+     * 指定されたデータ移行依頼に紐づくメモを取得する
+     * @param recordId データ移行依頼レコードID
+     * @return メモのリスト
+     */
+    @AuraEnabled(cacheable=false)
+    public static List<DataMigrationRequestMemo__c> getMemos(String recordId) {
+        try {
+            return [
+                SELECT Id, TargetField__c, Memo__c
+                FROM DataMigrationRequestMemo__c
+                WHERE DataMigrationRequest__c = :recordId
+            ];
+        } catch (Exception e) {
+            String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
+            AuraHandledException ae = new AuraHandledException(errorMessage);
+            ae.setMessage(errorMessage);
+            throw ae;
+        }
+    }
+
+    /**
+     * @description
+     * メモを保存する（新規作成または更新）
+     * @param recordId データ移行依頼レコードID
+     * @param targetField メモを入力した項目のラベル
+     * @param memoText メモのテキスト
+     */
+    @AuraEnabled
+    public static void saveMemo(String recordId, String targetField, String memoText) {
+        try {
+            List<DataMigrationRequestMemo__c> existing = [
+                SELECT Id
+                FROM DataMigrationRequestMemo__c
+                WHERE DataMigrationRequest__c = :recordId
+                AND TargetField__c = :targetField
+                LIMIT 1
+            ];
+            if (!existing.isEmpty()) {
+                existing[0].Memo__c = memoText;
+                update as system existing[0];
+            } else {
+                DataMigrationRequestMemo__c memo = new DataMigrationRequestMemo__c(
+                    DataMigrationRequest__c = recordId,
+                    TargetField__c = targetField,
+                    Memo__c = memoText
+                );
+                insert as system memo;
+            }
+        } catch (Exception e) {
+            String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
+            AuraHandledException ae = new AuraHandledException(errorMessage);
+            ae.setMessage(errorMessage);
+            throw ae;
+        }
+    }
+
     /**
      * @description
      * LWC返却用のクラス。処理結果とエラーメッセージを保持

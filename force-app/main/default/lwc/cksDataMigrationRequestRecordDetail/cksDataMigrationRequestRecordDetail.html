@@ -55,13 +55,19 @@
                         <template lwc:if={scheduleSteps.hasSchedule}>
                             <lightning-layout-item size="12" padding="around-small">
                                 <div class="schedule-wrapper" style="border:1px solid #d8dde6; border-radius:8px; background:#f8fbff; padding:12px;">
-                                    <p class="schedule-title" style="font-weight:700; margin-bottom:8px;">簡易スケジュール</p>
+                                    <p class="schedule-title" style="font-weight:700; margin-bottom:8px;">簡易スケジュール(目安)</p>
                                     <div class="schedule-flow" style="display:flex; flex-wrap:nowrap; align-items:stretch; overflow-x:auto; padding-bottom:4px;" role="list" aria-label="簡易スケジュール">
                                         <template for:each={scheduleSteps.steps} for:item="step">
                                             <div key={step.id} class={step.itemClass} role="listitem" style={step.itemStyle}>
                                                 <p class="schedule-deadline" style="font-size:12px; color:#31465d; margin-bottom:2px; line-height:1.2;">{step.deadlineLabel}</p>
                                                 <p class="schedule-task" style="font-size:13px; font-weight:700; color:#1f2d3d; margin-bottom:2px; line-height:1.3;">{step.label}</p>
                                                 <p class="schedule-date" style="font-size:12px; color:#425b76; line-height:1.2;">{step.dateLabel}</p>
+                                                <template lwc:if={step.hasOutputs}>
+                                                    <p style="font-size:11px; font-weight:700; color:#31465d; margin-top:4px; margin-bottom:1px; line-height:1.2;">アウトプット</p>
+                                                    <template for:each={step.outputs} for:item="output">
+                                                        <p key={output.id} style="font-size:11px; color:#31465d; margin:0; line-height:1.3;">・{output.text}</p>
+                                                    </template>
+                                                </template>
                                             </div>
                                         </template>
                                     </div>
@@ -88,494 +94,61 @@
                     <lightning-layout multiple-rows="true">
                         <lightning-layout-item padding="horizontal-small" size="12">
                             <div class="slds-m-bottom_x-small">
-                                <lightning-button label="確認事項をすべて開く" onclick={handleOpenAll}></lightning-button>
-                                <lightning-button label="確認事項をすべて閉じる" onclick={handleCloseAll} class="slds-m-left_x-small"></lightning-button>
+                                <lightning-button label="確認事項・メモをすべて開く" onclick={handleOpenAll}></lightning-button>
+                                <lightning-button label="確認事項・メモをすべて閉じる" onclick={handleCloseAll} class="slds-m-left_x-small"></lightning-button>
                             </div>
                         </lightning-layout-item>
-                        <template lwc:if={visibility.existingContractCustomerNotes}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
+                        <template for:each={sectionBItems} for:item="item">
+                            <lightning-layout-item key={item.key} padding="horizontal-small" size="12" style="margin-bottom: 3px;">
                                 <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="既契約者の顧客注意事項" checked={existingContractCustomerNotes} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.existingContractCustomerNotes.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.existingContractCustomerNotes}
-                                            variant="border"
-                                            size="small"
-                                            data-key="existingContractCustomerNotes"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
+                                    <lightning-input type="checkbox" label={item.label} checked={item.checked} disabled></lightning-input>
+                                    <lightning-button-icon
+                                        icon-name={item.toggleIcon}
+                                        variant="border"
+                                        size="small"
+                                        data-key={item.key}
+                                        onclick={handleMessageToggle}
+                                        alternative-text="確認事項・メモを表示">
+                                    </lightning-button-icon>
                                 </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.existingContractCustomerNotes}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.existingContractCustomerNotes.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.individual}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="白地顧客及び白地顧客の顧客注意事項" checked={individual} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.individual.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.individual}
-                                            variant="border"
-                                            size="small"
-                                            data-key="individual"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
+                                <template lwc:if={item.isOpen}>
+                                    <div style="border-bottom: 1px solid #dde3ec; padding-bottom: 8px; padding-left: 20px;">
+                                    <template lwc:if={item.hasContent}>
+                                        <div class="slds-box slds-theme_shade slds-m-top_x-small">
+                                            <ul class="slds-list_dotted">
+                                                <template for:each={item.messages} for:item="message">
+                                                    <li key={message.id} class="slds-m-bottom_x-small">
+                                                        <template lwc:if={message.text}>
+                                                            <lightning-formatted-text value={message.text}></lightning-formatted-text>
+                                                        </template>
+                                                        <template lwc:if={message.img}>
+                                                            <div class="image-container slds-m-top_small">
+                                                                <img src={message.img} alt="説明画像" class="migration-hint-image"/>
+                                                            </div>
+                                                        </template>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
                                     </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.individual}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.individual.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                    <template lwc:if={message.img}>
-                                                        <div class="image-container slds-m-top_small">
-                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
-                                                        </div>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
+                                    <div class="slds-form-element slds-m-top_x-small">
+                                        <label class="slds-form-element__label">メモ</label>
+                                        <div class="slds-form-element__control">
+                                            <textarea
+                                                class="slds-textarea memo-textarea"
+                                                style="overflow: hidden; resize: none; min-height: 52px;"
+                                                data-key={item.key}
+                                                oninput={handleMemoChange}
+                                                onblur={handleMemoSave}></textarea>
+                                        </div>
                                     </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.masterGroupCustomerNotes}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="マスタ団体の顧客注意事項" checked={masterGroupCustomerNotes} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.masterGroupCustomerNotes.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.masterGroupCustomerNotes}
-                                            variant="border"
-                                            size="small"
-                                            data-key="masterGroupCustomerNotes"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.masterGroupCustomerNotes}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.masterGroupCustomerNotes.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
                                     </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.childGroup}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="白地団体及び白地団体の顧客注意事項" checked={childGroup} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.childGroup.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.childGroup}
-                                            variant="border"
-                                            size="small"
-                                            data-key="childGroup"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.childGroup}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.childGroup.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                    <template lwc:if={message.img}>
-                                                        <div class="image-container slds-m-top_small">
-                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
-                                                        </div>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.user}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="ユーザ" checked={user} disabled></lightning-input>
+                                </template>
                             </lightning-layout-item>
                         </template>
-                        <template lwc:if={visibility.recordTypeMaster}>
+                        <template lwc:if={visibility.otherRequest}>
                             <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="レコードタイプマスター" checked={recordTypeMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.associateBranchMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="代理店出先マスタ" checked={associateBranchMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.masterGroup}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="マスタ団体" checked={masterGroup} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.childGroupOnly}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="白地団体" checked={childGroupOnly} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.household}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="世帯" checked={household} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.household.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.household}
-                                            variant="border"
-                                            size="small"
-                                            data-key="household"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.household}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.household.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                    <template lwc:if={message.img}>
-                                                        <div class="image-container slds-m-top_small">
-                                                            <img src={message.img} alt="説明画像" class="migration-hint-image"/>
-                                                        </div>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.individualOnly}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="白地顧客" checked={individualOnly} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.existingContract}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="既契約者" checked={existingContract} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.clientClassificationMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="顧客分類マスタ" checked={clientClassificationMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.customerNotes}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="顧客注意事項" checked={customerNotes} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.relative}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="関係者情報" checked={relative} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.relative.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.relative}
-                                            variant="border"
-                                            size="small"
-                                            data-key="relative"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.relative}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.relative.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.accountContactRelation}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="取引先と取引先責任者のリレーション" checked={accountContactRelation} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.campaignOnly}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="募集企画" checked={campaignOnly} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.campaignMember}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="キャンペーンメンバー" checked={campaignMember} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.campaign}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="募集企画及び募集企画対象者" checked={campaign} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.campaign.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.campaign}
-                                            variant="border"
-                                            size="small"
-                                            data-key="campaign"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.campaign}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.campaign.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.otherCompany}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="他社保険契約" checked={otherCompany} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.ownCompany}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="自社保険契約" checked={ownCompany} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.riderOwnCompany}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="自社特約" checked={riderOwnCompany} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.riderOtherCompany}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="他社特約" checked={riderOtherCompany} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.incomingChannelLeadsMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="受付経路マスタ" checked={incomingChannelLeadsMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.opportunity}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="案件" checked={opportunity} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.opportunityInsurancePolicyAssociation}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="案件保険契約関係" checked={opportunityInsurancePolicyAssociation} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.designDocument}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="設計書" checked={designDocument} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.graspIntention}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="意向把握" checked={graspIntention} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.comparisonRecommendedProduct}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="比較推奨商品" checked={comparisonRecommendedProduct} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.bringOut}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="持出履歴" checked={bringOut} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.shipping}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="発送履歴" checked={shipping} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.receipt}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="受領履歴" checked={receipt} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.storage}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="個人データ管理" checked={storage} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.personalInformationHandling}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="個人情報取り扱い" checked={personalInformationHandling} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.dailyReport}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="日報" checked={dailyReport} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.contactClassMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="対応種別マスタ" checked={contactClassMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.event}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    <lightning-input type="checkbox" label="対応" checked={event} disabled></lightning-input>
-                                    <template lwc:if={displayMessages.event.hasContent}>
-                                        <lightning-button-icon
-                                            icon-name={messageToggleIcons.event}
-                                            variant="border"
-                                            size="small"
-                                            data-key="event"
-                                            onclick={handleMessageToggle}
-                                            alternative-text="注意事項を表示">
-                                        </lightning-button-icon>
-                                    </template>
-                                </div>
-                            </lightning-layout-item>
-                            <template lwc:if={messageOpenFlags.event}>
-                                <lightning-layout-item size="12" padding="around-small">
-                                    <div class="slds-box slds-theme_shade">
-                                        <ul class="slds-list_dotted">
-                                            <template for:each={displayMessages.event.messages} for:item="message">
-                                                <li key={message.id} class="slds-m-bottom_x-small">
-                                                    <template lwc:if={message.text}>
-                                                        <lightning-formatted-text value={message.text}></lightning-formatted-text>
-                                                    </template>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </lightning-layout-item>
-                            </template>
-                        </template>
-                        <template lwc:if={visibility.texttemplate}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="テキストテンプレート" checked={texttemplate} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.task}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="タスク" checked={task} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.attachmentDoc}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="添付書類" checked={attachmentDoc} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.planningTargetClassification}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="募集企画対象者区分マスタ" checked={planningTargetClassification} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.agencyContactMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="所属部署マスタ" checked={agencyContactMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.targetManagement}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="目標" checked={targetManagement} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.contact}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="取引先責任者" checked={contact} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.status}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="主契約ステータス" checked={status} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.product2}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="商品" checked={product2} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.productCommissionPercent}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="商品手数料率" checked={productCommissionPercent} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.analyticsPermissionMaster}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="Analytics権限マスタ" checked={analyticsPermissionMaster} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.contentDocumentLink}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="ContentDocumentLink" checked={contentDocumentLink} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.contentVersion}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="ContentVersion" checked={contentVersion} disabled></lightning-input>
-                            </lightning-layout-item>
-                        </template>
-                        <template lwc:if={visibility.cksDesignDocumentDivision}>
-                            <lightning-layout-item padding="horizontal-small" size="12">
-                                <lightning-input type="checkbox" label="設計書区分マスタ" checked={cksDesignDocumentDivision} disabled></lightning-input>
+                                <lightning-output-field field-name="OtherRequest__c" variant="standard"></lightning-output-field>
                             </lightning-layout-item>
                         </template>
                     </lightning-layout>
