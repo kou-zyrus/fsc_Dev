@@ -18,6 +18,7 @@ import { deleteRecord } from 'lightning/uiRecordApi';
 import getEditSetupData from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getEditSetupData';
 import getMemos from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getMemos';
 import saveMemo from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.saveMemo';
+import getScheduleSteps from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getScheduleSteps';
 
 /** 削除確認メッセージ */
 const DELETE_CONFIRM_MESSAGE = {
@@ -27,83 +28,9 @@ const DELETE_CONFIRM_MESSAGE = {
     variant: 'header' // デフォルトはheader。
 };
 
-/** 移行種別の定数 */
-const TYPE_NEW_USE = '販管から新規利用';
+/** 移行種別の定数（MESSAGES_CONFIG・REFERENCE_MATERIALS_CONFIGで参照するもののみ） */
 const TYPE_INTEGRATION_USED = '代理店統合(利用済み代理店間)';
-const TYPE_INTEGRATION_UNUSED = '代理店統合(未利用代理店→利用済み代理店)';
 const TYPE_POLICYS_TRANSFER = '一部証券移管';
-const TYPE_ALLDATA_EXPORT = '全データ抽出';
-const TYPE_SPECIFICDATA_EXPORT = '一部データ抽出';
-const TYPE_TOA_BULKPATCH = 'トーア一括パッチ';
-const TYPE_OTHER_PATCH = 'その他データパッチ';
-
-/** 簡易スケジュール定義（移行日の何営業日前までに何を実施するか） */
-const TYPE_NEW_USE_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_INTEGRATION_USED_SCHEDULE = [
-    { businessDaysBefore: 10, label: '依頼登録〆切り' },
-    { businessDaysBefore: 8, label: '事前データ抽出' },
-    { businessDaysBefore: 5, label: '事前抽出データ確認', outputs: ['データチェック報告書(各種データ件数及び移行内容)'] },
-    { businessDaysBefore: 3, label: '移管前データ抽出(ユーザー登録以降)' }
-];
-
-const TYPE_INTEGRATION_UNUSED_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_POLICYS_TRANSFER_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_ALLDATA_EXPORT_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_SPECIFICDATA_EXPORT_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_TOA_BULKPATCH_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const TYPE_OTHER_PATCH_SCHEDULE = [
-    { businessDaysBefore: 20, label: '販管の移行件数と特約移行件数を連携' },
-    { businessDaysBefore: 8, label: '特約事前移行' },
-    { businessDaysBefore: 5, label: '事前データ抽出' },
-    { businessDaysBefore: 1, label: '販管ファイル出力設定' }
-];
-
-const SCHEDULE_CONFIG = {
-    [TYPE_NEW_USE]: TYPE_NEW_USE_SCHEDULE,
-    [TYPE_INTEGRATION_USED]: TYPE_INTEGRATION_USED_SCHEDULE,
-    [TYPE_INTEGRATION_UNUSED]: TYPE_INTEGRATION_UNUSED_SCHEDULE,
-    [TYPE_POLICYS_TRANSFER]: TYPE_POLICYS_TRANSFER_SCHEDULE,
-    [TYPE_ALLDATA_EXPORT]: TYPE_ALLDATA_EXPORT_SCHEDULE,
-    [TYPE_SPECIFICDATA_EXPORT]: TYPE_SPECIFICDATA_EXPORT_SCHEDULE,
-    [TYPE_TOA_BULKPATCH]: TYPE_TOA_BULKPATCH_SCHEDULE,
-    [TYPE_OTHER_PATCH]: TYPE_OTHER_PATCH_SCHEDULE
-};
 
 /** 参考資料の表示定義 */
 const REFERENCE_MATERIALS_CONFIG = {
@@ -115,74 +42,61 @@ const REFERENCE_MATERIALS_CONFIG = {
     ]
 };
 
-/** 
- * 各項目の表示条件定義
- */
-const FIELD_VISIBILITY = {
-    migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER],
-    existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
-    individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER],
-    childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    // 全データ抽出専用（household より前に表示）
-    user: [TYPE_ALLDATA_EXPORT],
-    recordTypeMaster: [TYPE_ALLDATA_EXPORT],
-    associateBranchMaster: [TYPE_ALLDATA_EXPORT],
-    masterGroup: [TYPE_ALLDATA_EXPORT],
-    childGroupOnly: [TYPE_ALLDATA_EXPORT],
-    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（household と relative の間）
-    individualOnly: [TYPE_ALLDATA_EXPORT],
-    existingContract: [TYPE_ALLDATA_EXPORT],
-    clientClassificationMaster: [TYPE_ALLDATA_EXPORT],
-    customerNotes: [TYPE_ALLDATA_EXPORT],
-    relative: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（relative と campaign の間）
-    accountContactRelation: [TYPE_ALLDATA_EXPORT],
-    campaignOnly: [TYPE_ALLDATA_EXPORT],
-    campaignMember: [TYPE_ALLDATA_EXPORT],
-    campaign: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（otherCompany と riderOtherCompany の間）
-    ownCompany: [TYPE_ALLDATA_EXPORT],
-    riderOwnCompany: [TYPE_ALLDATA_EXPORT],
-    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（riderOtherCompany と opportunity の間）
-    incomingChannelLeadsMaster: [TYPE_ALLDATA_EXPORT],
-    opportunity: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（opportunity と graspIntention の間）
-    opportunityInsurancePolicyAssociation: [TYPE_ALLDATA_EXPORT],
-    designDocument: [TYPE_ALLDATA_EXPORT],
-    graspIntention: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（graspIntention と personalInformationHandling の間）
-    comparisonRecommendedProduct: [TYPE_ALLDATA_EXPORT],
-    bringOut: [TYPE_ALLDATA_EXPORT],
-    shipping: [TYPE_ALLDATA_EXPORT],
-    receipt: [TYPE_ALLDATA_EXPORT],
-    storage: [TYPE_ALLDATA_EXPORT],
-    personalInformationHandling: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH],
-    dailyReport: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（dailyReport と event の間）
-    contactClassMaster: [TYPE_ALLDATA_EXPORT],
-    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（event と task の間）
-    texttemplate: [TYPE_ALLDATA_EXPORT],
-    task: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（attachmentDoc と targetManagement の間）
-    planningTargetClassification: [TYPE_ALLDATA_EXPORT],
-    agencyContactMaster: [TYPE_ALLDATA_EXPORT],
-    targetManagement: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT],
-    // 全データ抽出専用（targetManagement 以降）
-    contact: [TYPE_ALLDATA_EXPORT],
-    status: [TYPE_ALLDATA_EXPORT],
-    product2: [TYPE_ALLDATA_EXPORT],
-    productCommissionPercent: [TYPE_ALLDATA_EXPORT],
-    analyticsPermissionMaster: [TYPE_ALLDATA_EXPORT],
-    contentDocumentLink: [TYPE_ALLDATA_EXPORT],
-    contentVersion: [TYPE_ALLDATA_EXPORT],
-    cksDesignDocumentDivision: [TYPE_ALLDATA_EXPORT],
-    otherRequest: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT, TYPE_TOA_BULKPATCH, TYPE_OTHER_PATCH],
+/** 各項目のJSキー → DataMigrationRequest__c項目APIの対応定義 */
+const FIELD_API_MAP = {
+    migrationAssociateCode:              'MigrationAssociateCode__c',
+    existingContractCustomerNotes:       'ExistingContractCustomerNotes__c',
+    individual:                          'Individual__c',
+    masterGroupCustomerNotes:            'MasterGroupCustomerNotes__c',
+    childGroup:                          'ChildGroup__c',
+    user:                                'User__c',
+    recordTypeMaster:                    'RecordTypeMaster__c',
+    associateBranchMaster:               'AssociateBranchMaster__c',
+    masterGroup:                         'MasterGroup__c',
+    childGroupOnly:                      'ChildGroupOnly__c',
+    household:                           'Household__c',
+    individualOnly:                      'IndividualOnly__c',
+    existingContract:                    'ExistingContract__c',
+    clientClassificationMaster:          'ClientClassificationMaster__c',
+    customerNotes:                       'CustomerNotes__c',
+    relative:                            'Relative__c',
+    accountContactRelation:              'AccountContactRelation__c',
+    campaignOnly:                        'CampaignOnly__c',
+    campaignMember:                      'CampaignMember__c',
+    campaign:                            'Campaign__c',
+    otherCompany:                        'OtherCompany__c',
+    ownCompany:                          'OwnCompany__c',
+    riderOwnCompany:                     'RiderOwnCompany__c',
+    riderOtherCompany:                   'RiderOtherCompany__c',
+    incomingChannelLeadsMaster:          'IncomingChannel_LeadsMaster__c',
+    opportunity:                         'Opportunity__c',
+    opportunityInsurancePolicyAssociation: 'OpportunityInsurancePolicyAssociation__c',
+    designDocument:                      'DesignDocument__c',
+    graspIntention:                      'GraspIntention__c',
+    comparisonRecommendedProduct:        'ComparisonRecommendedProduct__c',
+    bringOut:                            'BringOut__c',
+    shipping:                            'Shipping__c',
+    receipt:                             'Receipt__c',
+    storage:                             'Storage__c',
+    personalInformationHandling:         'PersonalInformationHandling__c',
+    dailyReport:                         'DailyReport__c',
+    contactClassMaster:                  'ContactClassMaster__c',
+    event:                               'Event__c',
+    texttemplate:                        'Texttemplate__c',
+    task:                                'Task__c',
+    attachmentDoc:                       'AttachmentDoc__c',
+    planningTargetClassification:        'PlanningTargetClassification__c',
+    agencyContactMaster:                 'AgencyContactMaster__c',
+    targetManagement:                    'TargetManagement__c',
+    contact:                             'Contact__c',
+    status:                              'Status__c',
+    product2:                            'Product2__c',
+    productCommissionPercent:            'ProductCommissionPercent__c',
+    analyticsPermissionMaster:           'AnalyticsPermissionMaster__c',
+    contentDocumentLink:                 'ContentDocumentLink__c',
+    contentVersion:                      'ContentVersion__c',
+    cksDesignDocumentDivision:           'CKS_DesignDocumentDivision__c',
+    otherRequest:                        'OtherRequest__c',
 };
 
 /** 移行対象オブジェクトごとのメッセージ定義 */
@@ -335,6 +249,14 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     memoValues = {};
     //保存済みメモ値（差分検出用）
     savedMemoValues = {};
+    //DataMigrationTypeMaster__c.TargetObject__cの値（セミコロン区切り）をSetに変換したもの
+    targetObjectSet = new Set();
+    //DataMigrationTypeSchedule__cのレコード一覧（scheduleStepsゲッターで使用）
+    scheduleStepsData = [];
+    //スケジュール日付入力値（key: スケジュール名, value: 入力日付文字列）
+    scheduleDateValues = {};
+    //保存済みスケジュール日付値（差分検出用）
+    savedScheduleDateValues = {};
     //内部用の表示セクション
     internalActiveSections = ['A', 'B', 'C'];
     //参考資料セクションの自動展開を1回だけ実行するためのフラグ
@@ -449,6 +371,15 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
 
     //描画後処理
     renderedCallback() {
+        // スケジュール日付入力: 保存済み値の反映
+        this.template.querySelectorAll('input.schedule-date-input').forEach(input => {
+            const stepLabel = input.dataset.stepLabel;
+            const savedValue = this.scheduleDateValues[stepLabel] || '';
+            if (input.value !== savedValue) {
+                input.value = savedValue;
+            }
+        });
+
         // メモ textarea: 保存済み値の反映と高さ自動調整
         this.template.querySelectorAll('textarea.memo-textarea').forEach(ta => {
             const key = ta.dataset.key;
@@ -477,8 +408,16 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
         try{
             const requestData = await getEditSetupData({recordId : this.recordId});
             this.name = requestData.Name;
-            this.migrationType = requestData.MigrationType__c;
+            this.migrationType = requestData.MigrationTypeLookUp__r?.Name || '';
             this.migrationDate = requestData.MigrationDate__c;
+            const rawTargetObject = requestData.MigrationTypeLookUp__r?.TargetObject__c || '';
+            this.targetObjectSet = new Set(rawTargetObject ? rawTargetObject.split(';') : []);
+            const migrationTypeMasterId = requestData.MigrationTypeLookUp__c;
+            if (migrationTypeMasterId) {
+                this.scheduleStepsData = await getScheduleSteps({ migrationTypeMasterId });
+            } else {
+                this.scheduleStepsData = [];
+            }
             this.associateCode = requestData.AssociateCode__c;
             this.migrationAssociateCode = requestData.MigrationAssociateCode__c;
             this.existingContractCustomerNotes = requestData.ExistingContractCustomerNotes__c;
@@ -534,22 +473,35 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             this.contentVersion = requestData.ContentVersion__c;
             this.cksDesignDocumentDivision = requestData.CKS_DesignDocumentDivision__c;
 
-            // メモ読み込み
+            // メモ・スケジュール日付 読み込み
             const memos = await getMemos({ recordId: this.recordId });
             const labelToKey = Object.fromEntries(
                 Object.entries(TOGGLE_ITEMS).map(([k, v]) => [v, k])
             );
+            const scheduleStepNames = new Set([
+                ...(this.scheduleStepsData || []).map(s => s.Name),
+                '移行実施'
+            ]);
             const memoVals = {};
             const savedMemoVals = {};
+            const scheduleDateVals = {};
+            const savedScheduleDateVals = {};
             memos.forEach(memo => {
-                const key = labelToKey[memo.TargetField__c];
-                if (key) {
-                    memoVals[key] = memo.Memo__c || '';
-                    savedMemoVals[key] = memo.Memo__c || '';
+                if (scheduleStepNames.has(memo.TargetField__c)) {
+                    scheduleDateVals[memo.TargetField__c] = memo.Memo__c || '';
+                    savedScheduleDateVals[memo.TargetField__c] = memo.Memo__c || '';
+                } else {
+                    const key = labelToKey[memo.TargetField__c];
+                    if (key) {
+                        memoVals[key] = memo.Memo__c || '';
+                        savedMemoVals[key] = memo.Memo__c || '';
+                    }
                 }
             });
             this.memoValues = memoVals;
             this.savedMemoValues = savedMemoVals;
+            this.scheduleDateValues = scheduleDateVals;
+            this.savedScheduleDateValues = savedScheduleDateVals;
 
             this.setDefaultActiveSections();
         }catch(error){
@@ -700,6 +652,21 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
         }
     }
 
+    /** スケジュール日付入力変更時に保存 */
+    async handleScheduleDateChange(event) {
+        const stepLabel = event.currentTarget.dataset.stepLabel;
+        const dateText = event.target.value;
+        const savedText = this.savedScheduleDateValues[stepLabel] || '';
+        this.scheduleDateValues = { ...this.scheduleDateValues, [stepLabel]: dateText };
+        if (dateText === savedText) return;
+        try {
+            await saveMemo({ recordId: this.recordId, targetField: stepLabel, memoText: dateText });
+            this.savedScheduleDateValues = { ...this.savedScheduleDateValues, [stepLabel]: dateText };
+        } catch (error) {
+            this.error = error;
+        }
+    }
+
     /** 注意事項トグルのアイコン名（開閉状態に応じて切り替え） */
     get messageToggleIcons() {
         const icons = {};
@@ -711,16 +678,13 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
 
     /**
      * 各項目の表示・非表示を判定するゲッター
+     * DataMigrationTypeMaster__c.TargetObject__cに含まれるAPIの項目名に基づいて判定する
      */
     get visibility() {
         const visObj = {};
-        
-        // FIELD_VISIBILITYで定義した各項目について判定
-        Object.keys(FIELD_VISIBILITY).forEach(key => {
-            // 現在の移行種別が、定義された配列に含まれているかチェック
-            visObj[key] = FIELD_VISIBILITY[key].includes(this.migrationType);
+        Object.keys(FIELD_API_MAP).forEach(key => {
+            visObj[key] = this.targetObjectSet.has(FIELD_API_MAP[key]);
         });
-        
         return visObj;
     }
 
@@ -758,15 +722,26 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             .map(([key, label]) => {
                 const msgData = msgs[key] || { messages: [], hasContent: false };
                 const isOpen = this.messageOpenFlags[key] || false;
+                const hasMemo = !!(this.memoValues[key]);
+                const hasContent = msgData.hasContent;
+                let indicatorText = '';
+                if (hasContent && hasMemo) {
+                    indicatorText = '確認事項・メモあり';
+                } else if (hasContent) {
+                    indicatorText = '確認事項あり';
+                } else if (hasMemo) {
+                    indicatorText = 'メモあり';
+                }
                 return {
                     key,
                     label,
                     checked: this[key] || false,
                     messages: msgData.messages,
-                    hasContent: msgData.hasContent,
+                    hasContent,
                     isOpen,
                     memoValue: this.memoValues[key] || '',
-                    toggleIcon: isOpen ? 'utility:chevrondown' : 'utility:chevronright'
+                    toggleIcon: isOpen ? 'utility:chevrondown' : 'utility:chevronright',
+                    indicatorText
                 };
             });
     }
@@ -829,13 +804,13 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
     }
 
     /**
-     * 移行種別と移行日に応じた簡易スケジュールを返す
+     * DataMigrationTypeSchedule__cのデータと移行日に応じた簡易スケジュールを返す
      */
     get scheduleSteps() {
-        const scheduleConfig = SCHEDULE_CONFIG[this.migrationType];
+        const data = this.scheduleStepsData;
         const baseDate = this.parseDate(this.migrationDate);
 
-        if (!scheduleConfig || !baseDate) {
+        if (!data || data.length === 0 || !baseDate) {
             return {
                 hasSchedule: false,
                 steps: []
@@ -844,22 +819,25 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
 
         const clipDefault = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%)';
         const clipFirst   = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%)';
-        const chevronBase  = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
-        const chevronFirst = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 14px; ${clipFirst}`;
-        const chevronFinal = `flex:0 0 220px; min-height:88px; background:#c7d7e8; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
+        const styleBase  = `flex:0 0 220px; margin-right:2px; min-height:88px; background:#d9e3ef; color:#2a3b4f; padding:10px 24px 10px 20px; ${clipDefault}`;
+        const styleFirst = `flex:0 0 220px; margin-right:2px; min-height:88px; background:#d9e3ef; color:#2a3b4f; padding:10px 24px 10px 14px; ${clipFirst}`;
+        const styleFinal = `flex:0 0 220px; margin-right:2px; min-height:88px; background:#c7d7e8; color:#2a3b4f; padding:10px 24px 10px 20px; ${clipDefault}`;
 
-        // すべて「移行日」を基準に営業日逆算する
-        const steps = scheduleConfig.map((item, index) => {
-            const targetDate = this.subtractBusinessDays(baseDate, item.businessDaysBefore);
+        const steps = data.map((item, index) => {
+            const businessDaysBefore = item.RequiredDays__c || 0;
+            const targetDate = this.subtractBusinessDays(baseDate, businessDaysBefore);
+            const outputs = item.Output__c ? [{ id: `out_${index}_0`, text: item.Output__c }] : [];
             return {
                 id: `schedule_${index}`,
-                label: item.label,
-                deadlineLabel: `移行日-${item.businessDaysBefore}営業日`,
+                label: item.Name,
+                deadlineLabel: `移行日-${businessDaysBefore}営業日`,
                 dateLabel: this.formatDate(targetDate),
-                outputs: (item.outputs || []).map((text, i) => ({ id: `out_${index}_${i}`, text })),
-                hasOutputs: (item.outputs || []).length > 0,
+                outputs,
+                hasOutputs: outputs.length > 0,
+                isMigrationDate: false,
                 itemClass: index === 0 ? 'schedule-chevron schedule-chevron-first' : 'schedule-chevron',
-                itemStyle: index === 0 ? chevronFirst : chevronBase
+                itemStyle: index === 0 ? styleFirst : styleBase,
+                scheduleDateValue: this.scheduleDateValues[item.Name] || ''
             };
         });
 
@@ -870,8 +848,10 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
             dateLabel: this.formatDate(baseDate),
             outputs: [],
             hasOutputs: false,
+            isMigrationDate: true,
             itemClass: 'schedule-chevron schedule-chevron-final',
-            itemStyle: chevronFinal
+            itemStyle: styleFinal,
+            scheduleDateValue: this.scheduleDateValues['移行実施'] || ''
         });
 
         return {

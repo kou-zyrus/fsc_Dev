@@ -14,3 +14,23 @@ lightning-modal-body.modal-body_empty-targets {
 .section-b-blank-row {
     height: 3rem;
 }
+
+.schedule-chevron {
+    position: relative;
+    flex: 0 0 220px;
+    min-height: 88px;
+    background: #d9e3ef;
+    color: #2a3b4f;
+    margin-right: 2px;
+    padding: 10px 24px 10px 20px;
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%);
+}
+
+.schedule-chevron-first {
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%);
+    padding-left: 14px;
+}
+
+.schedule-chevron-final {
+    background: #c7d7e8;
+}

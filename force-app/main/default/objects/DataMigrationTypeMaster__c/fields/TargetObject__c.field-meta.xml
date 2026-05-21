@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>TargetObject__c</fullName>
+    <label>対象オブジェクト(データ)</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>MultiselectPicklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetName>DataMigrationTargetObject</valueSetName>
+    </valueSet>
+    <visibleLines>10</visibleLines>
+</CustomField>

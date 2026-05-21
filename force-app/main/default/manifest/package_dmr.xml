@@ -19,6 +19,10 @@
     </types>
     <types>
         <members>DataMigrationRequest__c</members>
+        <members>DataMigrationRequestQA__c</members>
+        <members>DataMigrationRequestMemo__c</members>
+        <members>DataMigrationTypeSchedule__c</members>
+        <members>DataMigrationTypeMaster__c</members>
         <name>CustomObject</name>
     </types>
     <version>63.0</version>

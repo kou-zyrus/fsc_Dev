@@ -48,7 +48,6 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
             List<DataMigrationRequest__c> result = [ SELECT
                 Id,
                 Name,
-                MigrationType__c,
                 MigrationDate__c,
                 AssociateCode__c,
                 MigrationAssociateCode__c,
@@ -104,6 +103,9 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
                 ContentVersion__c,
                 CKS_DesignDocumentDivision__c,
                 OtherRequest__c,
+                MigrationTypeLookUp__c,
+                MigrationTypeLookUp__r.Name,
+                MigrationTypeLookUp__r.TargetObject__c,
                 LastModifiedDate
                 FROM DataMigrationRequest__c
                 WHERE Id = :recordId
@@ -117,6 +119,23 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
             String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
             // Logger.error(errorMessage);
             // Logger.saveLog();
+            AuraHandledException ae = new AuraHandledException(errorMessage);
+            ae.setMessage(errorMessage);
+            throw ae;
+        }
+    }
+
+    /**
+     * @description
+     * 移行種別マスタの一覧を Order__c 昇順で返す
+     * @return 移行種別マスタレコードのリスト
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<DataMigrationTypeMaster__c> getMigrationTypeMasters() {
+        try {
+            return [SELECT Id, Name, Order__c, TargetObject__c, DefaultCheck__c FROM DataMigrationTypeMaster__c ORDER BY Order__c ASC NULLS LAST];
+        } catch (Exception e) {
+            String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
             AuraHandledException ae = new AuraHandledException(errorMessage);
             ae.setMessage(errorMessage);
             throw ae;
@@ -370,6 +389,32 @@ public with sharing class CKS_CTRL_DataMigrationRequest {
         // }
     }
     
+    /**
+     * @description
+     * 移行種別マスタに紐づくスケジュールステップを取得する
+     * @param migrationTypeMasterId 移行種別マスタレコードID
+     * @return スケジュールステップのリスト（RequiredDays__c 降順）
+     */
+    @AuraEnabled(cacheable=false)
+    public static List<DataMigrationTypeSchedule__c> getScheduleSteps(String migrationTypeMasterId) {
+        if (String.isBlank(migrationTypeMasterId)) {
+            return new List<DataMigrationTypeSchedule__c>();
+        }
+        try {
+            return [
+                SELECT Name, RequiredDays__c, Output__c
+                FROM DataMigrationTypeSchedule__c
+                WHERE DataMigrationTypeMaster__c = :migrationTypeMasterId
+                ORDER BY RequiredDays__c DESC
+            ];
+        } catch (Exception e) {
+            String errorMessage = 'Time(Asia/Tokyo) : ' + Datetime.now().format('yyyy-MM-dd HH:mm:ss', 'Asia/Tokyo') + ' Message : ' + e.getMessage() + ' StackTrace : ' + e.getStackTraceString();
+            AuraHandledException ae = new AuraHandledException(errorMessage);
+            ae.setMessage(errorMessage);
+            throw ae;
+        }
+    }
+
     /**
      * @description
      * 指定されたデータ移行依頼に紐づくメモを取得する

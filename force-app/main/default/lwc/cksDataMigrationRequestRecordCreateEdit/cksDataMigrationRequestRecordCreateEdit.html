@@ -26,10 +26,17 @@
                             </lightning-layout-item>
                             <lightning-layout-item padding="horizontal-small" size="6"></lightning-layout-item>
                             <lightning-layout-item padding="horizontal-small" size="6">
-                                <lightning-input-field field-name="MigrationType__c" value={fieldValues.MigrationType__c} onchange={handleChange}></lightning-input-field>
+                                <lightning-combobox
+                                    label="移行種別"
+                                    value={migrationTypeMasterId}
+                                    options={migrationTypeMasterOptions}
+                                    onchange={handleMigrationTypeChange}
+                                    placeholder="選択してください"
+                                    required>
+                                </lightning-combobox>
                             </lightning-layout-item>
                             <lightning-layout-item padding="horizontal-small" size="6">
-                                <lightning-input-field field-name="MigrationDate__c" value={fieldValues.MigrationDate__c}></lightning-input-field>
+                                <lightning-input-field field-name="MigrationDate__c" value={fieldValues.MigrationDate__c} onchange={handleDateChange}></lightning-input-field>
                             </lightning-layout-item>
                             <lightning-layout-item padding="horizontal-small" size="6">
                                 <lightning-input-field field-name="AssociateCode__c" value={fieldValues.AssociateCode__c}></lightning-input-field>
@@ -37,6 +44,28 @@
                             <template lwc:if={visibility.migrationAssociateCode}>
                                 <lightning-layout-item padding="horizontal-small" size="6">
                                     <lightning-input-field field-name="MigrationAssociateCode__c" value={fieldValues.MigrationAssociateCode__c}></lightning-input-field>
+                                </lightning-layout-item>
+                            </template>
+                            <template lwc:if={scheduleSteps.hasSchedule}>
+                                <lightning-layout-item size="12" padding="around-small">
+                                    <div style="border:1px solid #d8dde6; border-radius:8px; background:#f8fbff; padding:12px;">
+                                        <p style="font-weight:700; margin-bottom:8px;">簡易スケジュール(目安)</p>
+                                        <div style="display:flex; flex-wrap:nowrap; align-items:stretch; overflow-x:auto; padding-bottom:4px;" role="list" aria-label="簡易スケジュール">
+                                            <template for:each={scheduleSteps.steps} for:item="step">
+                                                <div key={step.id} class={step.itemClass} role="listitem" style={step.itemStyle}>
+                                                    <p style="font-size:12px; color:#31465d; margin-bottom:2px; line-height:1.2;">{step.deadlineLabel}</p>
+                                                    <p style="font-size:13px; font-weight:700; color:#1f2d3d; margin-bottom:2px; line-height:1.3;">{step.label}</p>
+                                                    <p style="font-size:12px; color:#425b76; line-height:1.2;">{step.dateLabel}</p>
+                                                    <template lwc:if={step.hasOutputs}>
+                                                        <p style="font-size:11px; font-weight:700; color:#31465d; margin-top:4px; margin-bottom:1px; line-height:1.2;">アウトプット</p>
+                                                        <template for:each={step.outputs} for:item="output">
+                                                            <p key={output.id} style="font-size:11px; color:#31465d; margin:0; line-height:1.3;">・{output.text}</p>
+                                                        </template>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </lightning-layout-item>
                             </template>
                         </lightning-layout>
@@ -49,6 +78,7 @@
                                     <div style="height:200px;"></div>
                                 </lightning-layout-item>
                             </template>
+                            <template lwc:if={sectionBVisible}>
                             <template lwc:if={visibility.existingContractCustomerNotes}>
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="ExistingContractCustomerNotes__c" value={fieldValues.ExistingContractCustomerNotes__c}></lightning-input-field>
@@ -308,6 +338,7 @@
                                 <lightning-layout-item padding="horizontal-small" size="12">
                                     <lightning-input-field field-name="OtherRequest__c" value={fieldValues.OtherRequest__c}></lightning-input-field>
                                 </lightning-layout-item>
+                            </template>
                             </template>
                         </lightning-layout>
                     </lightning-accordion-section>

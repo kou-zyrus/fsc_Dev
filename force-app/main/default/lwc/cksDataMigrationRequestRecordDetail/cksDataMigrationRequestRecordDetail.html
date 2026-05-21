@@ -39,7 +39,7 @@
                             <lightning-output-field field-name="Name" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
                         <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
-                            <lightning-output-field field-name="MigrationType__c" variant="standard"></lightning-output-field>
+                            <lightning-output-field field-name="MigrationTypeLookUp__c" variant="standard"></lightning-output-field>
                         </lightning-layout-item>
                         <lightning-layout-item class="section-a-item" padding="horizontal-small" size="6">
                             <lightning-output-field field-name="MigrationDate__c" variant="standard"></lightning-output-field>
@@ -56,20 +56,37 @@
                             <lightning-layout-item size="12" padding="around-small">
                                 <div class="schedule-wrapper" style="border:1px solid #d8dde6; border-radius:8px; background:#f8fbff; padding:12px;">
                                     <p class="schedule-title" style="font-weight:700; margin-bottom:8px;">簡易スケジュール(目安)</p>
-                                    <div class="schedule-flow" style="display:flex; flex-wrap:nowrap; align-items:stretch; overflow-x:auto; padding-bottom:4px;" role="list" aria-label="簡易スケジュール">
-                                        <template for:each={scheduleSteps.steps} for:item="step">
-                                            <div key={step.id} class={step.itemClass} role="listitem" style={step.itemStyle}>
-                                                <p class="schedule-deadline" style="font-size:12px; color:#31465d; margin-bottom:2px; line-height:1.2;">{step.deadlineLabel}</p>
-                                                <p class="schedule-task" style="font-size:13px; font-weight:700; color:#1f2d3d; margin-bottom:2px; line-height:1.3;">{step.label}</p>
-                                                <p class="schedule-date" style="font-size:12px; color:#425b76; line-height:1.2;">{step.dateLabel}</p>
-                                                <template lwc:if={step.hasOutputs}>
-                                                    <p style="font-size:11px; font-weight:700; color:#31465d; margin-top:4px; margin-bottom:1px; line-height:1.2;">アウトプット</p>
-                                                    <template for:each={step.outputs} for:item="output">
-                                                        <p key={output.id} style="font-size:11px; color:#31465d; margin:0; line-height:1.3;">・{output.text}</p>
+                                    <div style="overflow-x:auto; padding-bottom:4px;">
+                                        <div class="schedule-flow" style="display:flex; flex-wrap:nowrap; align-items:stretch;" role="list" aria-label="簡易スケジュール">
+                                            <template for:each={scheduleSteps.steps} for:item="step">
+                                                <div key={step.id} class={step.itemClass} role="listitem" style={step.itemStyle}>
+                                                    <p class="schedule-deadline" style="font-size:12px; color:#31465d; margin-bottom:2px; line-height:1.2;">{step.deadlineLabel}</p>
+                                                    <p class="schedule-task" style="font-size:13px; font-weight:700; color:#1f2d3d; margin-bottom:2px; line-height:1.3;">{step.label}</p>
+                                                    <p class="schedule-date" style="font-size:12px; color:#425b76; line-height:1.2;">{step.dateLabel}</p>
+                                                    <template lwc:if={step.hasOutputs}>
+                                                        <p style="font-size:11px; font-weight:700; color:#31465d; margin-top:4px; margin-bottom:1px; line-height:1.2;">アウトプット</p>
+                                                        <template for:each={step.outputs} for:item="output">
+                                                            <p key={output.id} style="font-size:11px; color:#31465d; margin:0; line-height:1.3;">・{output.text}</p>
+                                                        </template>
                                                     </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <div style="position:relative; border:1px solid #a8bcd4; border-radius:4px; padding:8px; margin-top:12px;">
+                                            <span style="position:absolute; top:-10px; left:8px; background:#f8fbff; padding:0 4px; font-size:12px; font-weight:700; color:#2a3b4f;">実スケジュール</span>
+                                            <div style="display:flex; flex-wrap:nowrap;">
+                                                <template for:each={scheduleSteps.steps} for:item="step">
+                                                    <div key={step.id} style="flex:0 0 220px; margin-right:2px;">
+                                                        <template lwc:if={step.isMigrationDate}>
+                                                            <p style="font-size:13px; font-weight:700; color:#2a3b4f; padding:5px 8px; min-height:32px; line-height:1.6; width:calc(100% - 18px);">{step.dateLabel}</p>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <input type="date" class="slds-input schedule-date-input" style="width:calc(100% - 18px);" data-step-label={step.label} onchange={handleScheduleDateChange}/>
+                                                        </template>
+                                                    </div>
                                                 </template>
                                             </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </lightning-layout-item>
@@ -110,6 +127,9 @@
                                         onclick={handleMessageToggle}
                                         alternative-text="確認事項・メモを表示">
                                     </lightning-button-icon>
+                                    <template lwc:if={item.indicatorText}>
+                                        <span style="font-size:11px; color:#0070d2;">{item.indicatorText}</span>
+                                    </template>
                                 </div>
                                 <template lwc:if={item.isOpen}>
                                     <div style="border-bottom: 1px solid #dde3ec; padding-bottom: 8px; padding-left: 20px;">

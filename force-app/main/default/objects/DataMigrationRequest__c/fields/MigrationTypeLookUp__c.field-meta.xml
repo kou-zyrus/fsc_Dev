@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MigrationTypeLookUp__c</fullName>
+    <deleteConstraint>Restrict</deleteConstraint>
+    <label>データ移行種別マスタ</label>
+    <referenceTo>DataMigrationTypeMaster__c</referenceTo>
+    <relationshipLabel>データ移行依頼</relationshipLabel>
+    <relationshipName>MigrationTypeLookUp</relationshipName>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

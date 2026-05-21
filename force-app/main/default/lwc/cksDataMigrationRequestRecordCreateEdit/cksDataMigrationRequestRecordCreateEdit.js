@@ -1,6 +1,8 @@
 import { api } from 'lwc';
 import LightningModal from 'lightning/modal';
 import getEditSetupData from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getEditSetupData';
+import getMigrationTypeMasters from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getMigrationTypeMasters';
+import getScheduleSteps from '@salesforce/apex/CKS_CTRL_DataMigrationRequest.getScheduleSteps';
 
 /**
  * LWC Modal for creating/editing/copying DataMigrationRequest__c records
@@ -21,68 +23,61 @@ export async function openCreateModal(recordId = null, isCopy = false) {
     return result;
 }
 
-const TYPE_INTEGRATION_USED = '代理店統合(利用済み代理店間)';
-const TYPE_INTEGRATION_UNUSED = '代理店統合(未利用代理店→利用済み代理店)';
-const TYPE_POLICYS_TRANSFER = '一部証券移管';
-const TYPE_NEW_USE = '販管から新規利用';
-const TYPE_ALLDATA_EXPORT = '全データ抽出';
-const TYPE_SPECIFICDATA_EXPORT = '一部データ抽出';
-const TYPE_OTHER_PATCH = 'その他データパッチ';
-
-const FIELD_VISIBILITY = {
-    migrationAssociateCode: [TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER],
-    existingContractCustomerNotes: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH],
-    individual: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH],
-    masterGroupCustomerNotes: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER],
-    childGroup: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH],
-    user: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    recordTypeMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    associateBranchMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    masterGroup: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    childGroupOnly: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    household: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    individualOnly: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    existingContract: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    clientClassificationMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    customerNotes: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    relative: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    accountContactRelation: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    campaignOnly: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    campaignMember: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    campaign: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH],
-    otherCompany: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    ownCompany: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    riderOwnCompany: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    riderOtherCompany: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    incomingChannelLeadsMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    opportunity: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    opportunityInsurancePolicyAssociation: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    designDocument: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    graspIntention: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    comparisonRecommendedProduct: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    bringOut: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    shipping: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    receipt: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    storage: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    personalInformationHandling: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH],
-    dailyReport: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    contactClassMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    event: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    texttemplate: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    task: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    attachmentDoc: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    planningTargetClassification: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    agencyContactMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    targetManagement: [TYPE_INTEGRATION_USED, TYPE_POLICYS_TRANSFER, TYPE_OTHER_PATCH, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    contact: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    status: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    product2: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    productCommissionPercent: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    analyticsPermissionMaster: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    contentDocumentLink: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    contentVersion: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    cksDesignDocumentDivision: [TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT],
-    otherRequest: [TYPE_NEW_USE, TYPE_INTEGRATION_USED, TYPE_INTEGRATION_UNUSED, TYPE_POLICYS_TRANSFER, TYPE_ALLDATA_EXPORT, TYPE_SPECIFICDATA_EXPORT, TYPE_OTHER_PATCH]
+/** 各項目のJSキー → DataMigrationRequest__c項目APIの対応定義 */
+const FIELD_API_MAP = {
+    migrationAssociateCode:              'MigrationAssociateCode__c',
+    existingContractCustomerNotes:       'ExistingContractCustomerNotes__c',
+    individual:                          'Individual__c',
+    masterGroupCustomerNotes:            'MasterGroupCustomerNotes__c',
+    childGroup:                          'ChildGroup__c',
+    user:                                'User__c',
+    recordTypeMaster:                    'RecordTypeMaster__c',
+    associateBranchMaster:               'AssociateBranchMaster__c',
+    masterGroup:                         'MasterGroup__c',
+    childGroupOnly:                      'ChildGroupOnly__c',
+    household:                           'Household__c',
+    individualOnly:                      'IndividualOnly__c',
+    existingContract:                    'ExistingContract__c',
+    clientClassificationMaster:          'ClientClassificationMaster__c',
+    customerNotes:                       'CustomerNotes__c',
+    relative:                            'Relative__c',
+    accountContactRelation:              'AccountContactRelation__c',
+    campaignOnly:                        'CampaignOnly__c',
+    campaignMember:                      'CampaignMember__c',
+    campaign:                            'Campaign__c',
+    otherCompany:                        'OtherCompany__c',
+    ownCompany:                          'OwnCompany__c',
+    riderOwnCompany:                     'RiderOwnCompany__c',
+    riderOtherCompany:                   'RiderOtherCompany__c',
+    incomingChannelLeadsMaster:          'IncomingChannel_LeadsMaster__c',
+    opportunity:                         'Opportunity__c',
+    opportunityInsurancePolicyAssociation: 'OpportunityInsurancePolicyAssociation__c',
+    designDocument:                      'DesignDocument__c',
+    graspIntention:                      'GraspIntention__c',
+    comparisonRecommendedProduct:        'ComparisonRecommendedProduct__c',
+    bringOut:                            'BringOut__c',
+    shipping:                            'Shipping__c',
+    receipt:                             'Receipt__c',
+    storage:                             'Storage__c',
+    personalInformationHandling:         'PersonalInformationHandling__c',
+    dailyReport:                         'DailyReport__c',
+    contactClassMaster:                  'ContactClassMaster__c',
+    event:                               'Event__c',
+    texttemplate:                        'Texttemplate__c',
+    task:                                'Task__c',
+    attachmentDoc:                       'AttachmentDoc__c',
+    planningTargetClassification:        'PlanningTargetClassification__c',
+    agencyContactMaster:                 'AgencyContactMaster__c',
+    targetManagement:                    'TargetManagement__c',
+    contact:                             'Contact__c',
+    status:                              'Status__c',
+    product2:                            'Product2__c',
+    productCommissionPercent:            'ProductCommissionPercent__c',
+    analyticsPermissionMaster:           'AnalyticsPermissionMaster__c',
+    contentDocumentLink:                 'ContentDocumentLink__c',
+    contentVersion:                      'ContentVersion__c',
+    cksDesignDocumentDivision:           'CKS_DesignDocumentDivision__c',
+    otherRequest:                        'OtherRequest__c',
 };
 
 export default class CksDataMigrationRequestRecordCreateEdit extends LightningModal {
@@ -96,7 +91,15 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
     activeSections = ['A', 'B'];
     error;
 
-    migrationType;
+    migrationTypeMasterId = null;
+    migrationTypeMasterOptions = [];
+    migrationTypeMasterList = [];
+    targetObjectSet = new Set();
+    migrationTypeDefaultCheck = false;
+    migrationTypeUserChanged = false;
+    sectionBVisible = true;
+    scheduleStepsData = [];
+    migrationDate = null;
     copySourceData;
 
     connectedCallback() {
@@ -104,17 +107,22 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
     }
 
     async init() {
-        if (!this.recordId) {
-            return;
-        }
-
         this.isLoading = true;
         try {
-            const data = await getEditSetupData({ recordId: this.recordId });
-            this.migrationType = data?.MigrationType__c;
+            const masters = await getMigrationTypeMasters();
+            this.migrationTypeMasterList = masters;
+            this.migrationTypeMasterOptions = masters.map(m => ({ label: m.Name, value: m.Id }));
 
-            if (this.isCopy) {
-                this.copySourceData = data;
+            if (this.recordId) {
+                const data = await getEditSetupData({ recordId: this.recordId });
+                this.migrationTypeMasterId = data?.MigrationTypeLookUp__c || null;
+                const raw = data?.MigrationTypeLookUp__r?.TargetObject__c || '';
+                this.targetObjectSet = new Set(raw ? raw.split(';') : []);
+                this.migrationDate = data?.MigrationDate__c || null;
+                if (this.isCopy) {
+                    this.copySourceData = data;
+                }
+                await this.fetchScheduleSteps();
             }
         } catch (error) {
             this.error = error;
@@ -139,11 +147,25 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
     }
 
     get fieldValues() {
+        // 移行種別をユーザーが切り替えた場合は全モードでデフォルト値を適用
+        if (this.migrationTypeUserChanged) {
+            if (!this.migrationTypeDefaultCheck) {
+                return {};
+            }
+            const defaults = {};
+            const excluded = new Set(['migrationAssociateCode', 'otherRequest']);
+            Object.entries(FIELD_API_MAP).forEach(([key, apiName]) => {
+                if (!excluded.has(key) && this.targetObjectSet.has(apiName)) {
+                    defaults[apiName] = true;
+                }
+            });
+            return defaults;
+        }
         if (this.isCopy && this.copySourceData) {
             const s = this.copySourceData;
             return {
                 Name: s.Name,
-                MigrationType__c: s.MigrationType__c,
+                MigrationTypeLookUp__c: s.MigrationTypeLookUp__c,
                 MigrationDate__c: s.MigrationDate__c,
                 AssociateCode__c: s.AssociateCode__c,
                 MigrationAssociateCode__c: s.MigrationAssociateCode__c,
@@ -201,87 +223,14 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
                 OtherRequest__c: s.OtherRequest__c
             };
         }
-        if (this.isCreate && !this.isCopy) {
-            if (this.migrationType === TYPE_SPECIFICDATA_EXPORT) {
-                return {};
-            }
-            if (this.migrationType === TYPE_ALLDATA_EXPORT) {
-                return {
-                    User__c: true,
-                    RecordTypeMaster__c: true,
-                    AssociateBranchMaster__c: true,
-                    MasterGroup__c: true,
-                    ChildGroupOnly__c: true,
-                    Household__c: true,
-                    IndividualOnly__c: true,
-                    ExistingContract__c: true,
-                    ClientClassificationMaster__c: true,
-                    CustomerNotes__c: true,
-                    Relative__c: true,
-                    AccountContactRelation__c: true,
-                    CampaignOnly__c: true,
-                    CampaignMember__c: true,
-                    OtherCompany__c: true,
-                    OwnCompany__c: true,
-                    RiderOwnCompany__c: true,
-                    RiderOtherCompany__c: true,
-                    IncomingChannel_LeadsMaster__c: true,
-                    Opportunity__c: true,
-                    OpportunityInsurancePolicyAssociation__c: true,
-                    DesignDocument__c: true,
-                    GraspIntention__c: true,
-                    ComparisonRecommendedProduct__c: true,
-                    BringOut__c: true,
-                    Shipping__c: true,
-                    Receipt__c: true,
-                    Storage__c: true,
-                    DailyReport__c: true,
-                    ContactClassMaster__c: true,
-                    Event__c: true,
-                    Texttemplate__c: true,
-                    Task__c: true,
-                    AttachmentDoc__c: true,
-                    PlanningTargetClassification__c: true,
-                    AgencyContactMaster__c: true,
-                    TargetManagement__c: true,
-                    Contact__c: true,
-                    Status__c: true,
-                    Product2__c: true,
-                    ProductCommissionPercent__c: true,
-                    AnalyticsPermissionMaster__c: true,
-                    ContentDocumentLink__c: true,
-                    ContentVersion__c: true,
-                    CKS_DesignDocumentDivision__c: true
-                };
-            }
-            return {
-                ExistingContractCustomerNotes__c: true,
-                Individual__c: true,
-                MasterGroupCustomerNotes__c: true,
-                ChildGroup__c: true,
-                Household__c: true,
-                Relative__c: true,
-                Campaign__c: true,
-                OtherCompany__c: true,
-                RiderOtherCompany__c: true,
-                Opportunity__c: true,
-                GraspIntention__c: true,
-                PersonalInformationHandling__c: true,
-                DailyReport__c: true,
-                Event__c: true,
-                Task__c: true,
-                AttachmentDoc__c: true,
-                TargetManagement__c: true
-            };
-        }
         // 編集モード: LDS が値をロードするため undefined を返す
         return {};
     }
 
     get visibility() {
         const visObj = {};
-        Object.keys(FIELD_VISIBILITY).forEach((key) => {
-            visObj[key] = FIELD_VISIBILITY[key].includes(this.migrationType);
+        Object.keys(FIELD_API_MAP).forEach((key) => {
+            visObj[key] = this.targetObjectSet.has(FIELD_API_MAP[key]);
         });
         return visObj;
     }
@@ -305,13 +254,116 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
     }
 
     get showBlankRowsInSectionB() {
-        return !this.migrationType;
+        return !this.migrationTypeMasterId;
     }
 
-    handleChange(event) {
-        if (event.target.fieldName === 'MigrationType__c') {
-            this.migrationType = event.target.value;
+    handleMigrationTypeChange(event) {
+        const selectedId = event.detail.value;
+        this.migrationTypeMasterId = selectedId;
+        const master = this.migrationTypeMasterList.find(m => m.Id === selectedId);
+        const raw = master?.TargetObject__c || '';
+        this.migrationTypeDefaultCheck = master?.DefaultCheck__c || false;
+        this.migrationTypeUserChanged = true;
+        // 一度セクションBをアンマウントして再マウントし、fieldValuesの新しい値を確実に反映する
+        this.sectionBVisible = false;
+        this.targetObjectSet = new Set(raw ? raw.split(';') : []);
+        this.fetchScheduleSteps();
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        setTimeout(() => {
+            this.sectionBVisible = true;
+        }, 0);
+    }
+
+    handleDateChange(event) {
+        this.migrationDate = event.detail.value;
+        this.fetchScheduleSteps();
+    }
+
+    async fetchScheduleSteps() {
+        if (!this.migrationTypeMasterId || !this.migrationDate) {
+            this.scheduleStepsData = [];
+            return;
         }
+        try {
+            this.scheduleStepsData = await getScheduleSteps({ migrationTypeMasterId: this.migrationTypeMasterId });
+        } catch (error) {
+            this.scheduleStepsData = [];
+        }
+    }
+
+    get scheduleSteps() {
+        const data = this.scheduleStepsData;
+        const baseDate = this.parseDate(this.migrationDate);
+        if (!data || data.length === 0 || !baseDate) {
+            return { hasSchedule: false, steps: [] };
+        }
+        const clipDefault = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%)';
+        const clipFirst   = 'clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%)';
+        const chevronBase  = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
+        const chevronFirst = `flex:0 0 220px; min-height:88px; background:#d9e3ef; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 14px; ${clipFirst}`;
+        const chevronFinal = `flex:0 0 220px; min-height:88px; background:#c7d7e8; color:#2a3b4f; margin-right:2px; padding:10px 24px 10px 20px; ${clipDefault}`;
+        const steps = data.map((item, index) => {
+            const businessDaysBefore = item.RequiredDays__c || 0;
+            const targetDate = this.subtractBusinessDays(baseDate, businessDaysBefore);
+            const outputs = item.Output__c ? [{ id: `out_${index}_0`, text: item.Output__c }] : [];
+            return {
+                id: `schedule_${index}`,
+                label: item.Name,
+                deadlineLabel: `移行日-${businessDaysBefore}営業日`,
+                dateLabel: this.formatDate(targetDate),
+                outputs,
+                hasOutputs: outputs.length > 0,
+                itemClass: index === 0 ? 'schedule-chevron schedule-chevron-first' : 'schedule-chevron',
+                itemStyle: index === 0 ? chevronFirst : chevronBase
+            };
+        });
+        steps.push({
+            id: `schedule_${steps.length}`,
+            label: '移行実施',
+            deadlineLabel: '移行日',
+            dateLabel: this.formatDate(baseDate),
+            outputs: [],
+            hasOutputs: false,
+            itemClass: 'schedule-chevron schedule-chevron-final',
+            itemStyle: chevronFinal
+        });
+        return { hasSchedule: true, steps };
+    }
+
+    parseDate(value) {
+        if (!value) return null;
+        if (value instanceof Date && !Number.isNaN(value.getTime())) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+        if (typeof value === 'string') {
+            const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (match) {
+                const [, year, month, day] = match;
+                return new Date(Number(year), Number(month) - 1, Number(day));
+            }
+        }
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return null;
+        return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+
+    subtractBusinessDays(date, businessDays) {
+        const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        let remain = businessDays;
+        while (remain > 0) {
+            result.setDate(result.getDate() - 1);
+            const day = result.getDay();
+            if (day !== 0 && day !== 6) remain -= 1;
+        }
+        return result;
+    }
+
+    formatDate(date) {
+        if (!date) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
     }
 
     handleClick(event) {
@@ -337,6 +389,10 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
 
         if (!this.isCreate) {
             fields.Id = this.recordId;
+        }
+
+        if (this.migrationTypeMasterId) {
+            fields.MigrationTypeLookUp__c = this.migrationTypeMasterId;
         }
 
         form.submit(fields);
@@ -371,7 +427,7 @@ export default class CksDataMigrationRequestRecordCreateEdit extends LightningMo
     createCopyFields() {
         const src = this.copySourceData || {};
         return {
-            MigrationType__c: src.MigrationType__c,
+            MigrationTypeLookUp__c: src.MigrationTypeLookUp__c,
             MigrationDate__c: src.MigrationDate__c,
             AssociateCode__c: src.AssociateCode__c,
             MigrationAssociateCode__c: src.MigrationAssociateCode__c,
