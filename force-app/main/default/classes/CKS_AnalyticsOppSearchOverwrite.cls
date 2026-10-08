@@ -25,6 +25,9 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
     @TestVisible String externalDataPartErrorMessage; //externalDataPartのInsert時のエラーを格納
     @TestVisible String externalDataUpdateErrorMessage; //externalDataのUpdate時のエラーを格納
 
+    // 過去4時間以内に作成されたDatasetExportが存在しなかった場合true
+    @TestVisible Boolean isDatasetExportNotFound = false;
+
     // InsightsExternalDataオブジェクトを作成
     InsightsExternalData externalData = new InsightsExternalData();
 
@@ -44,12 +47,12 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
         }
 
         //DatasetExportオブジェクトでレシピから作成された最新のCSVデータのIDを特定
-        DateTime x24HoursAgo = DateTime.now().addHours(-24); //バッチ実行時から24時間前の時間を取得
+        DateTime x4HoursAgo = DateTime.now().addHours(-4); //バッチ実行時から4時間前の時間を取得
         List<DatasetExport> datasetExport = [
             SELECT Id
             FROM DatasetExport
             WHERE PublisherInfo LIKE '%OUTPUT_AchievementManagement_OppSearch_OppAssociatedData' //PublisherInfoは「毎回変わるID:レシピの出力ノードのAPI名」の形式で設定されている
-                  AND CreatedDate >= :x24HoursAgo //過去24時間以内に作成されたデータを取得
+                  AND CreatedDate >= :x4HoursAgo //過去4時間以内に作成されたデータを取得
             ORDER BY CreatedDate DESC
             LIMIT 1
         ];
@@ -69,6 +72,8 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
         } else {
             // レシピが失敗して当日のデータが存在しない場合、何も取得しない（バッチを実行しない）
             query = 'SELECT DataFile, PartNumber FROM DatasetExportPart LIMIT 0';
+            // finishでメールを送信するためにフラグを立てる
+            isDatasetExportNotFound = true;
         }
 
         return Database.getQueryLocator(query);
@@ -108,8 +113,11 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
             externalDataUpdateErrorMessage = e.getMessage();
         }
 
-        // DML操作時にエラーが出た場合メールを送信する
-        if(externalDataInsertErrorMessage != null) {
+        // 過去4時間以内のデータが存在しなかった場合、またはDML操作時にエラーが出た場合メールを送信する
+        // （バッチからはenqueueJobを1回しか呼べないため、送信するメールは1通のみとする）
+        if(isDatasetExportNotFound) {
+            System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', 'レシピの実行状況を確認してください。'));
+        } else if(externalDataInsertErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataのInsertで発生）', externalDataInsertErrorMessage));
         } else if(externalDataPartErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataPartのInsertで発生）', externalDataPartErrorMessage));
