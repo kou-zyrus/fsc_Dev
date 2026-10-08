@@ -121,7 +121,7 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
             externalDataUpdateErrorMessage = e.getMessage();
         }
 
-        // 過去4時間以内のデータが存在しなかった場合、またはDML操作時にエラーが出た場合メールを送信する
+        // 過去4時間以内のデータが存在しなかった場合、DML操作時にエラーが出た場合、再実行が成功した場合にメールを送信する
         // （バッチからはenqueueJobを1回しか呼べないため、送信するメールは1通のみとする）
         if(isDatasetExportNotFound) {
             if(!isRetry) {
@@ -147,6 +147,9 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataPartのInsertで発生）', externalDataPartErrorMessage));
         } else if(externalDataUpdateErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataのUpdateで発生）', externalDataUpdateErrorMessage));
+        } else if(isRetry) {
+            // 30分後の再実行でデータが存在し、エラーなく処理できた場合は成功した旨のメールを送信する
+            System.enqueueJob(new RetrySuccessEmailJob());
         }
     }
 
@@ -179,6 +182,23 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
                 + '\n\nクラス名：CKS_AnalyticsOppSearchOverwrite'
                 + '\nエラー内容：' + processName
                 + '\nエラー詳細：' + errorMessage
+            );
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+        }
+    }
+
+    // 30分後の再実行が成功した場合にメールを送信するためのクラス
+    public with sharing class RetrySuccessEmailJob implements Queueable {
+        // execute メソッド内でメールを送信
+        public void execute(QueueableContext context) {
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            User u = [Select Id, Email FROM User WHERE UserName like 'mlt_camps_recipe@aflac.co.jp.afx%'];
+            mail.setToAddresses(new String[] {u.Email});
+            mail.setOrgWideEmailAddressId('0D22w000000btG2');
+            mail.setSubject('【CAMPS】案件検索データセット作成バッチの再実行が成功しました。');
+            mail.setPlainTextBody(
+                '30分後の再実行で、レシピで作成されたデータ（DatasetExport）が見つかったため、データセットの上書き処理を開始しました。'
+                + '\n\nクラス名：CKS_AnalyticsOppSearchOverwrite'
             );
             Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
         }
