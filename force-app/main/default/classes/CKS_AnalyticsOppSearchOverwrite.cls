@@ -9,6 +9,8 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
 
     // 次回スケジュール登録
     private Boolean isNextBatch = false;
+    // 再実行フラグ（過去4時間以内のデータが存在せず、30分後に再実行された処理の場合true）
+    private Boolean isRetry = false;
 
     // コンストラクタ
     public CKS_AnalyticsOppSearchOverwrite() {
@@ -18,6 +20,12 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
     // コンストラクタ
     public CKS_AnalyticsOppSearchOverwrite(Boolean prmIsNextBatch){
         this.isNextBatch = prmIsNextBatch;
+    }
+
+    // コンストラクタ（再実行用）
+    public CKS_AnalyticsOppSearchOverwrite(Boolean prmIsNextBatch, Boolean prmIsRetry){
+        this.isNextBatch = prmIsNextBatch;
+        this.isRetry = prmIsRetry;
     }
 
     // DML操作時のエラーメッセージ格納用の変数を宣言
@@ -116,7 +124,23 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
         // 過去4時間以内のデータが存在しなかった場合、またはDML操作時にエラーが出た場合メールを送信する
         // （バッチからはenqueueJobを1回しか呼べないため、送信するメールは1通のみとする）
         if(isDatasetExportNotFound) {
-            System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', 'レシピの実行状況を確認してください。'));
+            if(!isRetry) {
+                // 初回実行時は30分後に処理を再実行する
+                try {
+                    System.scheduleBatch(
+                        new CKS_AnalyticsOppSearchOverwrite(isNextBatch, true),
+                        'CKS_AnalyticsOppSearchOverwrite_Retry_' + DateTime.now().format('yyyyMMddHHmmss'), //ジョブ名が重複しないよう日時を付与
+                        30,
+                        200
+                    );
+                    System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', '30分後に処理を再実行します。'));
+                } catch(Exception e) {
+                    System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しないため再実行を登録しようとしましたが、登録に失敗しました', e.getMessage()));
+                }
+            } else {
+                // 再実行時もデータが存在しない場合は処理を中断する
+                System.enqueueJob(new ErrorEmailJob('再実行時もレシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', '処理を中断しました。レシピの実行状況を確認してください。'));
+            }
         } else if(externalDataInsertErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataのInsertで発生）', externalDataInsertErrorMessage));
         } else if(externalDataPartErrorMessage != null) {
