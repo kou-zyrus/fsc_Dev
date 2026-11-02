@@ -125,7 +125,7 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch extends CKS_HDL_Base 
 
             //商品手数料率マスタの手数料率
             if(ProductMap!=null){
-                String pmKey = keyWithConPlan(ddoc.Agency__c,processProductName(ddoc.ProductName__c),ddoc.SalesPlan__c,ddoc.ConditionalCancelDivisionForAnalytics__c);
+                String pmKey = keyWithConPlan(ddoc.Agency__c,processProductNameForCommission(ddoc),ddoc.SalesPlan__c,ddoc.ConditionalCancelDivisionForAnalytics__c);
                 for(string pm : ProductMap.keyset()){
                     if(pm == pmkey){
                         for(ProductCommissionPercent__c pcp:ProductMap.get(pm)){
@@ -233,7 +233,7 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch extends CKS_HDL_Base 
                     //商品手数料率マスタの手数料率
                     if(updateProductMap!=null){
                 
-                    String pmKey = keyWithConPlan(doc.Agency__c,processProductName(doc.ProductName__c),doc.SalesPlan__c,doc.ConditionalCancelDivisionForAnalytics__c);
+                    String pmKey = keyWithConPlan(doc.Agency__c,processProductNameForCommission(doc),doc.SalesPlan__c,doc.ConditionalCancelDivisionForAnalytics__c);
                         
                         for(string pm : updateProductMap.keyset()){
 
@@ -595,6 +595,7 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch extends CKS_HDL_Base 
                             Opportunity__r.owner.Contact.Account.AnalyticsIndividualCompanyHandling__c,
                             Agency__c,
                             ProductName__c,
+                            InsuranceProductCompany__c,
                             SalesPlan__c,
                             Group__c,
                             GroupNameForAnalytics__c,
@@ -673,6 +674,16 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch extends CKS_HDL_Base 
         string finalProductName = productName.deleteWhitespace();
 
         return finalProductName;
+    }
+
+    //商品手数料率マスタ結合用の商品名を作成するメソッド
+    //(商品名が「その他」の場合は「その他（保険会社名）」に変換)
+    private String processProductNameForCommission(DesignDocument__c doc){
+        String productName = doc.ProductName__c;
+        if(productName == 'その他' && String.isNotBlank(doc.InsuranceProductCompany__c)){
+            productName = 'その他（' + doc.InsuranceProductCompany__c + '）';
+        }
+        return processProductName(productName);
     }
 
     //手数料率及び商品のkeyを作成するメソッド

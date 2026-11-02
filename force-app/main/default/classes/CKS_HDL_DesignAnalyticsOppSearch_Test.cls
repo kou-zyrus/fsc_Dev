@@ -250,29 +250,30 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch_Test {
             //商品手数料率
             List<ProductCommissionPercent__c> textProPerList = new List<ProductCommissionPercent__c>();
 
+            //設計書の商品名が「その他」の場合は「その他（保険会社名）」で結合される
             ProductCommissionPercent__c testProPercent = new ProductCommissionPercent__c(
                 AssociateName__c = testAssociate.id,
-                ProductName__c = 'その他',
+                ProductName__c = 'その他（Aflac）',
                 CommissionPercent__c = 20,
                 ownerId = ExecutiveUser.id
             );
             ProductCommissionPercent__c testProPercent2 = new ProductCommissionPercent__c(
                 AssociateName__c = testAssociate.id,
-                ProductName__c = 'その他',
+                ProductName__c = 'その他（Aflac）',
                 CommissionPercent__c = 20,
                 ownerId = ExecutiveUser.id,
                 CommissionStartDate__c = Date.today()
             );
             ProductCommissionPercent__c testProPercent3 = new ProductCommissionPercent__c(
                 AssociateName__c = testAssociate.id,
-                ProductName__c = 'その他',
+                ProductName__c = 'その他（Aflac）',
                 CommissionPercent__c = 20,
                 ownerId = ExecutiveUser.id,
                 CommissionEndDate__c  = Date.today()
             );
             ProductCommissionPercent__c testProPercent4 = new ProductCommissionPercent__c(
                 AssociateName__c = testAssociate.id,
-                ProductName__c = 'その他',
+                ProductName__c = 'その他（Aflac）',
                 CommissionPercent__c = 20,
                 ownerId = ExecutiveUser.id,
                 CommissionStartDate__c = Date.today(),
@@ -619,6 +620,34 @@ public with sharing class CKS_HDL_DesignAnalyticsOppSearch_Test {
 
             Test.stopTest();
         }
+    }
+
+    @IsTest
+    static void testOtherProductCommissionPercent() {
+
+        User ExecutiveUser = [select id,name from user where username= 'analyticsoppexecutiveuser@aflac.co.jp'];
+        DesignDocument__c testDoc;
+
+        Test.startTest();
+        system.runAs(ExecutiveUser){
+
+            Opportunity testOpp = [SELECT id,name,ownerId,AssociateCode__c FROM Opportunity WHERE name = 'testOpp' LIMIT 1];
+
+            //商品名「その他」＋保険会社「Aflac」の設計書挿入
+            testDoc = new DesignDocument__c(
+                Opportunity__c = testOpp.id,
+                Insured__c='顧客1',
+                InsuredAge__c='30',
+                ProductName__c = 'その他',
+                InsuranceProductCompany__c = 'Aflac'
+            );
+            insert testDoc;
+        }
+        Test.stopTest();
+
+        //商品手数料率マスタの「その他（Aflac）」の手数料率が設定されていること
+        AnalyticsOpportunitySearch__c aos = [SELECT id,ProductCommissionPercent__c FROM AnalyticsOpportunitySearch__c WHERE DesignDocument__c = :testDoc.Id LIMIT 1];
+        System.assertEquals(20, aos.ProductCommissionPercent__c);
     }
 
     @IsTest
