@@ -1,0 +1,111 @@
+<template>
+    <lightning-card title="CRM Analytics 案件検索データ連携" icon-name="standard:dataset">
+        <div class="slds-var-p-around_medium">
+
+            <!-- ============================================== -->
+            <!-- ① CRM Analytics レシピ実行セクション -->
+            <!-- ============================================== -->
+            <div class="slds-box slds-theme_shade slds-var-m-bottom_medium">
+                <div class="slds-grid slds-grid_vertical-align-center slds-grid_align-spread slds-var-m-bottom_small">
+                    <div class="slds-col slds-grid slds-grid_vertical-align-center">
+                        <lightning-button 
+                            label="① レシピ実行 (CSV元データ作成)" 
+                            variant="brand" 
+                            icon-name="utility:play"
+                            onclick={handleRecipeButtonClick}
+                            disabled={isRecipeButtonDisabled}>
+                        </lightning-button>
+                        
+                        <template if:true={recipeStatus}>
+                            <div class="slds-var-m-left_medium">
+                                <span class={recipeBadgeClass}>{recipeStatusLabel}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- レシピ進捗バー -->
+                <template if:true={isRecipeStarted}>
+                    <div class="slds-grid slds-grid_align-spread slds-var-m-bottom_xx-small slds-text-title_bold">
+                        <span>レシピ進捗状況</span>
+                        <span>{recipeProgressPercent}%</span>
+                    </div>
+                    <lightning-progress-bar value={recipeProgressPercent} size="medium" variant={recipeProgressBarVariant}></lightning-progress-bar>
+
+                    <!-- レシピ詳細メトリクス（経過時間を下部に配置） -->
+                    <div class="slds-grid slds-wrap slds-var-m-top_small slds-text-body_small">
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">ジョブID: </span><span>{jobIdDisplay}</span>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">経過時間: </span><strong class="slds-var-m-left_xx-small">{formattedRecipeDuration}</strong>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">出力行数: </span><span>{rowCountDisplay}</span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ② データセット反映 (Apexバッチ) セクション -->
+            <!-- ============================================== -->
+            <div class="slds-box slds-theme_shade slds-var-m-bottom_medium">
+                <div class="slds-grid slds-grid_vertical-align-center slds-grid_align-spread slds-var-m-bottom_small">
+                    <div class="slds-col slds-grid slds-grid_vertical-align-center">
+                        <lightning-button 
+                            label="② データセット反映 (CSVアップロードバッチ)" 
+                            variant="brand" 
+                            icon-name="utility:upload"
+                            onclick={handleUploadButtonClick}
+                            disabled={isUploadButtonDisabled}>
+                        </lightning-button>
+                        
+                        <template if:true={uploadStatus}>
+                            <div class="slds-var-m-left_medium">
+                                <span class={uploadBadgeClass}>{uploadStatusLabel}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- アップロード進捗バー -->
+                <template if:true={isUploadStarted}>
+                    <div class="slds-grid slds-grid_align-spread slds-var-m-bottom_xx-small slds-text-title_bold">
+                        <span>データセット反映進捗</span>
+                        <span>{uploadProgressPercent}%</span>
+                    </div>
+                    <lightning-progress-bar value={uploadProgressPercent} size="medium" variant={uploadProgressBarVariant}></lightning-progress-bar>
+
+                    <!-- アップロード詳細メトリクス（経過時間を下部に配置） -->
+                    <div class="slds-grid slds-wrap slds-var-m-top_small slds-text-body_small">
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">アップロードID: </span><span>{uploadJobIdDisplay}</span>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">経過時間: </span><strong class="slds-var-m-left_xx-small">{formattedUploadDuration}</strong>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3">
+                            <span class="slds-text-color_weak">操作種別: </span><span>{uploadOperationDisplay}</span>
+                        </div>
+                    </div>
+
+                    <!-- エラー等の詳細メッセージ -->
+                    <template if:true={uploadStatusMessage}>
+                        <div class="slds-var-m-top_x-small slds-text-body_small slds-text-color_error">
+                            <span>詳細: {uploadStatusMessage}</span>
+                        </div>
+                    </template>
+                </template>
+            </div>
+
+            <!-- ステータスメッセージ表示エリア -->
+            <template if:true={statusMessage}>
+                <div class={messageAlertClass} role="alert">
+                    <p>{statusMessage}</p>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>

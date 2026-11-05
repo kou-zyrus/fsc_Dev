@@ -1,0 +1,83 @@
+<template>
+    <lightning-button
+      label="Schedule"
+      icon-name="utility:date_time"
+      icon-position="right"
+      onclick={executRecipeDataflowSchedule}
+      disabled= {isRecipeDataflowScheduleProcessing}
+    ></lightning-button>
+    <lightning-button
+      label="データセット作成"
+      icon-name="utility:table"
+      icon-position="right"
+      onclick={executeCreateDataset}
+      class="slds-p-left_small"
+      disabled= {isCreateDatasetProcessing}
+    ></lightning-button>
+    <lightning-button
+      label="モックユーザ作成"
+      icon-name="utility:user"
+      icon-position="right"
+      onclick={executeCreateMockUser}
+      class="slds-p-left_small"
+      disabled= {isCreateUserProcessing}
+    ></lightning-button>
+    <lightning-button
+      label="案件検索バッチスケジュール"
+      icon-name="utility:date_time"
+      icon-position="right"
+      onclick={executeScheduleBatch}
+      class="slds-p-left_small"
+    ></lightning-button>
+    <lightning-button
+    label="idチェック"
+    icon-name="utility:check"
+    icon-position="right"
+    onclick={idErrorCheck}
+    class="slds-p-left_small"
+  ></lightning-button>
+    <lightning-button
+    label="案件作成"
+    icon-name="utility:opportunity"
+    icon-position="right"
+    onclick={executeCreateOpportunity}
+    class="slds-p-left_small"
+    disabled = {isCreateOpportunityProcessing}
+  ></lightning-button>
+    <br>
+    <div>
+      接続名・ID
+    </div>
+    <div class = "tableMargin">
+      <lightning-datatable
+        key-field="Id"
+        data = {resultConnectArray}
+        columns = {connectColumns}
+        hide-checkbox-column>
+      </lightning-datatable>
+    </div>
+    <br>
+    <div>
+      レシピ名・ID
+    </div>
+    <div class = "tableMargin">
+      <lightning-datatable
+        key-field="Id"
+        data = {resultRecipeArray}
+        columns = {recipeColumns}
+        hide-checkbox-column>
+      </lightning-datatable>
+    </div>
+    <br>
+    <div>
+      データフロー名・ID
+    </div>
+    <div class = "tableMargin">
+      <lightning-datatable
+        key-field="Id"
+        data = {resultDataFlowArray}
+        columns = {flowColumns}
+        hide-checkbox-column>
+      </lightning-datatable>
+    </div>
+  </template>

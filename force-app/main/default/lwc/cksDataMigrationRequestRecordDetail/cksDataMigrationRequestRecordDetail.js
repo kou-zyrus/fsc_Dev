@@ -628,6 +628,20 @@ export default class cksDataMigrationRequestRecordDetail extends NavigationMixin
         this.messageOpenFlags = Object.fromEntries(Object.keys(this.messageOpenFlags).map(key => [key, false]));
     }
 
+    /** 確認事項またはメモがある項目のみ開く */
+    handleOpenWithContent() {
+        const vis = this.visibility;
+        const msgs = this.displayMessages;
+        this.messageOpenFlags = Object.fromEntries(
+            Object.keys(this.messageOpenFlags).map(key => {
+                if (!vis[key]) return [key, false];
+                const hasContent = (msgs[key] || {}).hasContent || false;
+                const hasMemo = !!(this.memoValues[key]);
+                return [key, hasContent || hasMemo];
+            })
+        );
+    }
+
     /** メモ入力値の変更追跡＋高さ自動調整 */
     handleMemoChange(event) {
         const key = event.currentTarget.dataset.key;

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WaveDashboard xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <content xsi:nil="true"/>
+    <application>InsightsApplication3</application>
+    <dateVersion>1</dateVersion>
+    <masterLabel>【CAMPS_AF用】案件検索（ダウンロード不可能）</masterLabel>
+</WaveDashboard>
