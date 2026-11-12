@@ -7,7 +7,7 @@ import getUploadJobStatus from "@salesforce/apex/CKS_AnalyticsOppSearchRetry.get
 const TARGET_RECIPE_LABEL = "【CAMPS】案件検索バッチ用CSV作成";
 const COOLDOWN_SECONDS = 15; // レシピ完了後の確定待機秒数
 
-export default class CksAnalyticsOppSearchRetry extends LightningElement {
+export default class CksAnalyticsMaintenanceRetry extends LightningElement {
   targetDataflowId;
   recipeFound = false;
 
