@@ -7,10 +7,19 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
     // String jobId = System.schedule('CKS_AnalyticsOppSearchOverwriteSchedule', CRON_EXP, new CKS_AnalyticsOppSearchOverwriteSchedule());
 
 
+    // 過去4時間以内のデータが存在しなかった場合の再実行間隔（分）
+    private static final Integer RETRY_INTERVAL_MINUTES = 15;
+    // 最大再実行回数
+    private static final Integer MAX_RETRY_COUNT = 2;
+    // 過去4時間以内のデータが存在しなかった場合のエラー内容（メール記載用）
+    private static final String DATASET_EXPORT_NOT_FOUND_MESSAGE = 'レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません';
+    // 最大回数まで再実行してもデータが存在しなかった場合のエラー詳細（メール記載用）
+    private static final String MANUAL_ACTION_MESSAGE = 'レシピの実行状況を確認し、必要に応じてApexバッチを手動で実行してください。';
+
     // 次回スケジュール登録
     private Boolean isNextBatch = false;
-    // 再実行フラグ（過去4時間以内のデータが存在せず、30分後に再実行された処理の場合true）
-    private Boolean isRetry = false;
+    // 再実行回数（初回実行は0、1回目の再実行は1、2回目の再実行は2）
+    private Integer retryCount = 0;
 
     // コンストラクタ
     public CKS_AnalyticsOppSearchOverwrite() {
@@ -23,9 +32,9 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
     }
 
     // コンストラクタ（再実行用）
-    public CKS_AnalyticsOppSearchOverwrite(Boolean prmIsNextBatch, Boolean prmIsRetry){
+    public CKS_AnalyticsOppSearchOverwrite(Boolean prmIsNextBatch, Integer prmRetryCount){
         this.isNextBatch = prmIsNextBatch;
-        this.isRetry = prmIsRetry;
+        this.retryCount = prmRetryCount;
     }
 
     // DML操作時のエラーメッセージ格納用の変数を宣言
@@ -124,22 +133,26 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
         // 過去4時間以内のデータが存在しなかった場合、DML操作時にエラーが出た場合、再実行が成功した場合にメールを送信する
         // （バッチからはenqueueJobを1回しか呼べないため、送信するメールは1通のみとする）
         if(isDatasetExportNotFound) {
-            if(!isRetry) {
-                // 初回実行時は30分後に処理を再実行する
+            if(retryCount < MAX_RETRY_COUNT) {
+                // 最大再実行回数に達していない場合は15分後に処理を再実行する
                 try {
                     System.scheduleBatch(
-                        new CKS_AnalyticsOppSearchOverwrite(isNextBatch, true),
-                        'CKS_AnalyticsOppSearchOverwrite_Retry_' + DateTime.now().format('yyyyMMddHHmmss'), //ジョブ名が重複しないよう日時を付与
-                        30,
+                        new CKS_AnalyticsOppSearchOverwrite(isNextBatch, retryCount + 1),
+                        'CKS_AnalyticsOppSearchOverwrite_Retry' + (retryCount + 1) + '_' + DateTime.now().format('yyyyMMddHHmmss'), //ジョブ名が重複しないよう再実行回数と日時を付与
+                        RETRY_INTERVAL_MINUTES,
                         200
                     );
-                    System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', '30分後に処理を再実行します。'));
+                    System.enqueueJob(new ErrorEmailJob(DATASET_EXPORT_NOT_FOUND_MESSAGE, RETRY_INTERVAL_MINUTES + '分後に処理を再実行します。'));
                 } catch(Exception e) {
-                    System.enqueueJob(new ErrorEmailJob('レシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しないため再実行を登録しようとしましたが、登録に失敗しました', e.getMessage()));
+                    System.enqueueJob(new ErrorEmailJob(DATASET_EXPORT_NOT_FOUND_MESSAGE + '（再実行の登録に失敗しました）', e.getMessage()));
                 }
             } else {
-                // 再実行時もデータが存在しない場合は処理を中断する
-                System.enqueueJob(new ErrorEmailJob('再実行時もレシピで作成されたデータ（DatasetExport）が過去4時間以内に存在しません', '処理を中断しました。レシピの実行状況を確認してください。'));
+                // 最大回数まで再実行してもデータが存在しない場合は処理を中断する
+                System.enqueueJob(new ErrorEmailJob(
+                    '※要対応【CAMPS】案件検索データセット作成バッチの再実行が失敗しました。',
+                    DATASET_EXPORT_NOT_FOUND_MESSAGE,
+                    MANUAL_ACTION_MESSAGE
+                ));
             }
         } else if(externalDataInsertErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataのInsertで発生）', externalDataInsertErrorMessage));
@@ -147,8 +160,8 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataPartのInsertで発生）', externalDataPartErrorMessage));
         } else if(externalDataUpdateErrorMessage != null) {
             System.enqueueJob(new ErrorEmailJob('データセットの上書き失敗（InsightsExternalDataのUpdateで発生）', externalDataUpdateErrorMessage));
-        } else if(isRetry) {
-            // 30分後の再実行でデータが存在し、エラーなく処理できた場合は成功した旨のメールを送信する
+        } else if(retryCount > 0) {
+            // 再実行でデータが存在し、エラーなく処理できた場合は成功した旨のメールを送信する
             System.enqueueJob(new RetrySuccessEmailJob());
         }
     }
@@ -161,6 +174,7 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
 
     // エラー時にメールを送信するためのクラス（通常のメソッドだとMIXED_DML_OPERATIONエラーが発生するため、Queueableクラスで非同期処理をすることで回避）
     public with sharing class ErrorEmailJob implements Queueable {
+        private String subject = '【CAMPS】案件検索データセット作成バッチでエラーが発生しました。';
         private String errorMessage;
         private String processName;
 
@@ -170,15 +184,22 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
             this.processName = processName;
         }
 
+        // コンストラクタで件名とエラーメッセージを受け取る（件名を変更する場合）
+        public ErrorEmailJob(String subject, String processName, String errorMessage) {
+            this(processName, errorMessage);
+            this.subject = subject;
+        }
+
         // execute メソッド内でメールを送信
         public void execute(QueueableContext context) {
             Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-            User u = [Select Id, Email FROM User WHERE UserName like 'mlt_camps_recipe@aflac.co.jp.afx%'];
+            User u = [Select Id, Email, UserName FROM User WHERE UserName like 'mlt_camps_recipe@aflac.co.jp.afx%'];
             mail.setToAddresses(new String[] {u.Email});
             mail.setOrgWideEmailAddressId('0D22w000000btG2');
-            mail.setSubject('【CAMPS】案件検索データセット作成バッチでエラーが発生しました。');
+            mail.setSubject(subject);
             mail.setPlainTextBody(
-                '以下の処理中にエラーが発生しました。'
+                '送信先ユーザ名：' + u.UserName //検証環境を判別できるよう送信先のユーザ名を文頭に記載
+                + '\n以下の処理中にエラーが発生しました。'
                 + '\n\nクラス名：CKS_AnalyticsOppSearchOverwrite'
                 + '\nエラー内容：' + processName
                 + '\nエラー詳細：' + errorMessage
@@ -187,17 +208,18 @@ public with sharing class CKS_AnalyticsOppSearchOverwrite implements Database.Ba
         }
     }
 
-    // 30分後の再実行が成功した場合にメールを送信するためのクラス
+    // 再実行が成功した場合にメールを送信するためのクラス
     public with sharing class RetrySuccessEmailJob implements Queueable {
         // execute メソッド内でメールを送信
         public void execute(QueueableContext context) {
             Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-            User u = [Select Id, Email FROM User WHERE UserName like 'mlt_camps_recipe@aflac.co.jp.afx%'];
+            User u = [Select Id, Email, UserName FROM User WHERE UserName like 'mlt_camps_recipe@aflac.co.jp.afx%'];
             mail.setToAddresses(new String[] {u.Email});
             mail.setOrgWideEmailAddressId('0D22w000000btG2');
             mail.setSubject('【CAMPS】案件検索データセット作成バッチの再実行が成功しました。');
             mail.setPlainTextBody(
-                '30分後の再実行で、レシピで作成されたデータ（DatasetExport）が見つかったため、データセットの上書き処理を開始しました。'
+                '送信先ユーザ名：' + u.UserName //検証環境を判別できるよう送信先のユーザ名を文頭に記載
+                + '\n' + RETRY_INTERVAL_MINUTES + '分後の再実行で、レシピで作成されたデータ（DatasetExport）が見つかったため、データセットの上書き処理を開始しました。'
                 + '\n\nクラス名：CKS_AnalyticsOppSearchOverwrite'
             );
             Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
